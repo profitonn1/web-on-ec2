@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String       @id @default(uuid())
+  username           String       @unique
+  email              String       @unique
+  mobile             String       
+  password           String
+  signin             Boolean      @default(false)
+  joinedDate         DateTime
+  userfulldetails             UserFullDetails[]
+  userEachMatchdetails            UserEachMatchDetails[]
+  usercurrentPairedDetails           UserCurrentPairedDetails[] 
+  challengeGameRangeDetails       ChallengeGameRangeDetails[]   
+}
+
+model  TotalAutomaticHistory {
+  id                   String               @unique @id @default(uuid())
+  amount               String     
+  category             String
+  playerOneUserName    String                    
+  playerTwoUserName    String
+  playerThreeUserName  String?              
+  playerFourUserName   String?
+  first                String
+  second               String
+  third                String?
+  fourth               String?
+
+}  
+
+model TotalchallengeHistory {
+  id                  String           @unique @id @default(uuid())
+  amount              String
+  category            String
+  challengedBy        String
+  challengedTo        String
+  winner              String
+  
+}
+
+
+model UserFullDetails {
+  id                 String        @unique @id @default(uuid())
+  nooftimespaired    String        
+  averageroc         String
+  winRate            String        @default("0/0")
+  Ranking            String
+  balanceINR         String
+  author             User          @relation(fields:[authorId] , references: [id])
+  authorId           String
+}
+
+model UserEachMatchDetails{
+  id                 String               @unique @id @default(uuid())
+  profit             String   
+  playingwith        String
+  aftergameamount    String
+  author             User                  @relation(fields:[authorId] , references: [id])
+  authorId           String  
+ 
+}
+
+model UserCurrentPairedDetails{
+  id                 String       @unique @id @default(uuid())
+  author             User         @relation(fields:[authorId] , references: [id])
+  authorId           String       @unique
+  isPaired           Boolean       @default(false)
+  opponentId         String?
+  amount             String?
+  category           String
+}
+
+model ChallengeGameRangeDetails{
+   id                 String             @unique @id @default(uuid())
+   author             User               @relation(fields:[authorId] , references: [id])
+   authorId           String  
+   paired             Boolean?           @default(false)  
+   categoryChosen     String
+   betStartRange      String?
+   betEndRange        String?
+   askStartRange      String?
+   askEndRange        String?
+   opponentId         String?
+   challengeResendGameRangeDetails        ChallengeResendGameRangeDetails[] 
+}
+
+model ChallengeResendGameRangeDetails{
+  id                 String                            @unique @id @default(uuid())
+  author             ChallengeGameRangeDetails         @relation(fields:[authorId] , references: [id])
+  authorId           String  
+  betStartRange2      String?
+  betEndRange2        String?
+  askStartRange2      String?
+  askEndRange2        String?
+}
