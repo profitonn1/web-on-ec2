@@ -1,14 +1,37 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  async rewrites() {
-    return [
+  reactStrictMode: true,
+  images: {
+    remotePatterns: [
       {
-        source: '/api/:path*',
-        destination: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/:path*', // Use environment variable or localhost
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        port: '',
+        pathname: '/**',
       },
-    ];
+    ],
   },
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        'localhost:3000',
+        'profitonn.com',
+        'js-next-nu.vercel.app',
+      ],
+    },
+  },
+  swcMinify: true,
+  webpack: (config) => {
+    // Enable polling based on env variable being set
+    if (process.env.NEXT_WEBPACK_USEPOLLING) {
+      config.watchOptions = {
+        poll: 500,
+        aggregateTimeout: 300,
+      };
+    }
+    return config;
+  },
+  output: 'standalone',
 };
 
-export default nextConfig;
+module.exports = nextConfig;
