@@ -1,4 +1,5 @@
 // export const dynamic = 'force-static';
+export const revalidate = 60; // Set a revalidation time in seconds
 
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
