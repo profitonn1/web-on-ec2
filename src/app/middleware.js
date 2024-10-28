@@ -1,9 +1,20 @@
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import * as cookie from 'cookie';
+import UnsupportedProtocolError from '../errors/UnsupportedProtocolError'; // Import your custom error
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
 const publicPaths = ['/signin', '/signup'];
+
+// Function to validate the protocol of the request URL
+function validateProtocol(url) {
+  const supportedProtocols = ['http', 'https']; // Add supported protocols here
+  const protocol = new URL(url).protocol.replace(':', '');
+
+  if (!supportedProtocols.includes(protocol)) {
+    throw new UnsupportedProtocolError(`Unsupported protocol: ${protocol}`);
+  }
+}
 
 export async function middleware(req) {
   const cookies = cookie.parse(req.headers.get('cookie') || '');
@@ -11,7 +22,8 @@ export async function middleware(req) {
   let userDetails = null;
   let isAuthenticated = false;
 
-  console.log(cookie.token)
+  console.log(cookies.token);
+  
   // Check for the token in cookies
   if (cookies.token) {
     try {
@@ -22,6 +34,17 @@ export async function middleware(req) {
       console.error('JWT verification failed:', error);
       return NextResponse.redirect(new URL('/signin', req.url));
     }
+  }
+
+  // Validate the protocol of the incoming request
+  try {
+    validateProtocol(req.url);
+  } catch (error) {
+    if (error instanceof UnsupportedProtocolError) {
+      console.error("Protocol Error:", error.message);
+      return NextResponse.redirect(new URL('/error', req.url)); // Redirect to an error page or handle accordingly
+    }
+    // Handle any other errors if necessary
   }
 
   // Redirect authenticated users to the dashboard
