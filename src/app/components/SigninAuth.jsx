@@ -47,7 +47,7 @@ export default function SigninAuth() {
       const data = response.data
 
       // Handle success
-      if (response.status === 201) {
+      if (response.ok) {
         localStorage.setItem("token", data.token)
         localStorage.setItem("userDetails", JSON.stringify(data.userDetails))
         setShowAlert(true)

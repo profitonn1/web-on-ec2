@@ -1,4 +1,4 @@
-export const dynamic = 'force-static';
+
 import {  NextResponse } from 'next/server';
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
@@ -53,21 +53,21 @@ export async function POST(request) {
       id: existingUser.id,
       username: existingUser.username,
     }), {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24,
+      httpOnly: false, // Change to true if you don't need to access it in JS
+      secure: process.env.NODE_ENV === 'production', // true in production
+      maxAge: 60 * 60 * 24, // 1 day
       path: '/',
-      sameSite: 'none',
+      sameSite: 'lax', // Consider using 'lax' if you don't need cross-origin
     });
-
+    
     response.cookies.set('token', token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24,
+      httpOnly: false, // Recommended for security
+      secure: process.env.NODE_ENV === 'production', // true in production
+      maxAge: 60 * 60 * 24, // 1 day
       path: '/',
-      sameSite: 'none',
+      sameSite: 'lax', // Consider using 'lax' if you don't need cross-origin
     });
-
+    
     return response;
   } catch (error) {
     console.error('Error during login:', error);
