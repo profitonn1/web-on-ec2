@@ -1,4 +1,4 @@
-export const dynamic = "force-static"; 
+// export const dynamic = "force-static"; 
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 // import * as cookie from 'cookie';

@@ -30,7 +30,7 @@ const nextConfig = {
     }
     return config;
   },
-  output: 'export',
+  // output: 'export',
   async rewrites() {
     return [
       {
