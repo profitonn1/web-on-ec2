@@ -1,3 +1,4 @@
+export const dynamic = "force-static"; 
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient()
@@ -89,50 +90,3 @@ export async function POST(request) {
     }
 }
 
-// export async function GET(request: Request) {
-
-//   const session = await getServerSession(authOptions);
-
-//   const { searchParams } = new URL(request.url);
-//   const opponentusername = searchParams.get("opponentusername");
-
-//   if (!session) {
-//     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-//   }
-
-//   if (!opponentusername) {
-//     return NextResponse.json({ error: "Missing opponentusername parameter" }, { status: 400 });
-//   }
-  
-//   const currentChallengersList = await db.challengeGameRangeDetails.findMany({
-//     where: { 
-//       authorId: {
-//         not: parsedUserDetails.id,  // Ensure opponent is not the current user
-//       },
-//     },
-//     include: { author: true },
-//   });
-  
-  
-  
-//   if (currentChallengersList.length > 0 ) {
-//     const challengeUserList = await db.userFullPastDetails.findMany({
-//       include: {
-//         author: {
-//           include: {
-//             categoryDetails: true,  // Include related data from `categoryDetails`
-//           },
-//         },
-//       },
-//     });
-  
-     
-    
-//   return NextResponse.json("data");
-//   } else {
-//     console.log("No users found for the given category.");
-//     return NextResponse.json("error while fetching",{status:401})
-//   }
-  
-
-// }
