@@ -16,7 +16,6 @@ const nextConfig = {
       allowedOrigins: [
         'localhost:3000',
         'profitonn.com',
-        'js-next-nu.vercel.app',
       ],
     },
   },
