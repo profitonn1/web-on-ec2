@@ -1,11 +1,10 @@
-"use client"
-import { useState } from "react"
-import axios from "axios"
-// import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation"
-import { z } from "zod"
-import validator from "validator"
-import { FaEye, FaEyeSlash } from "react-icons/fa"
+"use client";
+import { useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { z } from "zod";
+import validator from "validator";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const signUpSchema = z.object({
   username: z
@@ -15,119 +14,113 @@ const signUpSchema = z.object({
   mobile: z
     .string()
     .min(10, { message: "Mobile number must be at least 10 digits" })
-    .refine(val => validator.isMobilePhone(val, "any"), {
-      message: "Invalid mobile phone number"
+    .refine((val) => validator.isMobilePhone(val, "any"), {
+      message: "Invalid mobile phone number",
     }),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters long" })
-    .refine(val => /[A-Z]/.test(val), {
-      message: "Password must contain at least one uppercase letter"
+    .refine((val) => /[A-Z]/.test(val), {
+      message: "Password must contain at least one uppercase letter",
     })
-    .refine(val => /[a-z]/.test(val), {
-      message: "Password must contain at least one lowercase letter"
+    .refine((val) => /[a-z]/.test(val), {
+      message: "Password must contain at least one lowercase letter",
     })
-    .refine(val => /\d/.test(val), {
-      message: "Password must contain at least one number"
+    .refine((val) => /\d/.test(val), {
+      message: "Password must contain at least one number",
     })
-    .refine(val => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
-      message: "Password must contain at least one special character"
+    .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
+      message: "Password must contain at least one special character",
     }),
 
-  email: z.string().email({ message: "Invalid email address" })
-})
+  email: z.string().email({ message: "Invalid email address" }),
+});
 
 export default function SignupBox() {
-  // const { data: session, status } = useSession();
-  const router = useRouter()
-  const [showAlert, setShowAlert] = useState(false)
-  const [alertMessage, setAlertMessage] = useState("")
+  const router = useRouter();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const [errors, setErrors] = useState({
     username: "",
     mobile: "",
     password: "",
-    email: ""
-  })
+    email: "",
+  });
 
   const [postInputs, setPostInputs] = useState({
     username: "",
     mobile: "",
     password: "",
-    email: ""
-  })
+    email: "",
+  });
 
-  const handleSubmit = async e => {
-    e.preventDefault()
-    setErrors({ username: "", mobile: "", password: "", email: "" })
-    const result = signUpSchema.safeParse(postInputs)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrors({ username: "", mobile: "", password: "", email: "" });
+    const result = signUpSchema.safeParse(postInputs);
 
     if (!result.success) {
-      result.error.issues.forEach(issue => {
-        setErrors(prev => ({ ...prev, [issue.path[0]]: issue.message }))
-      })
-      return // stop further execution
+      result.error.issues.forEach((issue) => {
+        setErrors((prev) => ({ ...prev, [issue.path[0]]: issue.message }));
+      });
+      return; // stop further execution
     }
 
     try {
       const response = await axios.post("/api/signup", postInputs, {
         headers: {
-          "Content-Type": "application/json"
-        }
-      })
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.status === 200) {
         // Successful sign up
-        setAlertMessage("Sign Up Successful")
-        setShowAlert(true)
+        setAlertMessage("Sign Up Successful");
+        setShowAlert(true);
         setTimeout(() => {
-          setShowAlert(false)
-          router.push("/signin") // Redirect only on success
-        }, 1500)
+          setShowAlert(false);
+          router.push("/signin"); // Redirect only on success
+        }, 1500);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {
           // Access the error response status
           if (error.response.status === 401) {
-            setAlertMessage("Username already exists")
+            setAlertMessage("Username already exists");
           } else if (error.response.status === 400) {
-            setAlertMessage("Email already exists")
+            setAlertMessage("Email already exists");
           } else {
-            setAlertMessage("Sign Up failed")
+            setAlertMessage("Sign Up failed");
           }
         } else {
           // Fallback for unexpected errors
-          setAlertMessage("An error occurred, please try again")
+          setAlertMessage("An error occurred, please try again");
         }
       } else {
         // Handle non-Axios errors (if any)
-        setAlertMessage("Unexpected error occurred")
+        setAlertMessage("Unexpected error occurred");
       }
-      setShowAlert(true)
+      setShowAlert(true);
 
       // Prevent redirection if an error occurs
       setTimeout(() => {
-        setShowAlert(false)
-      }, 1500)
+        setShowAlert(false);
+      }, 1500);
     }
-  }
+  };
 
-  // useEffect(() => {
-  //   if (status === "loading") return; // Wait for session status to resolve
-  //   if (session) router.push("/dashboard");
-  // }, [session, status, router]);
-
-  const handleInputChange = e => {
-    const { name, value } = e.target
-    setPostInputs(prev => ({ ...prev, [name]: value }))
-  }
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPostInputs((prev) => ({ ...prev, [name]: value }));
+  };
 
   return (
-    <div>
+    <div className="min-h-screen w-screen bg-black flex flex-col justify-center items-center">
       {showAlert && (
         <div className="absolute top-5 left-1/2 transform -translate-x-1/2 w-full max-w-lg">
-          <div
-            className="p-4 mb-4 text-lg bg-[#b4ecc1] text-[#28a745] rounded-lg dark:text-[#155724] border-2 border-[#28a745] shadow-3xl"
+         <div
+            className="p-4 mb-4 text-xl font-mono glow2 bg-black text-white rounded-lg border-2 border-white"
             role="alert"
           >
             {alertMessage}
@@ -135,108 +128,131 @@ export default function SignupBox() {
         </div>
       )}
 
-      <div className="flex justify-center flex-col  bg-white h-screen w-full">
-        <form onSubmit={handleSubmit}>
-          <div className="flex justify-center">
-            <div>
-              <div className="text-center text-3xl font-bold text-gray-900">
-                Create an Account
-              </div>
-              <div className="text-center text-s lg:text-m text-slate-600">
-                Already have an account?
-                <button
-                  className="hover:text-black hover:underline text-lg font-bold ml-1 text-slate-700 "
-                  onClick={() => {
-                    router.push("/signin")
-                  }}
-                >
-                  login
-                </button>
-              </div>
+      <div className="w-full glow2 max-w-md p-8 space-y-8 bg-zinc-950 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold text-white text-center">Create Your Account</h2>
 
-              <LabelInput
-                Label="Username"
-                name="username"
-                placeholder="Enter your name"
-                type="text"
-                onChange={handleInputChange}
-                error={errors.username}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="rounded-md shadow-sm space-y-4">
+            <LabelInput
+              Label="Username"
+              name="username"
+              placeholder="Enter your username"
+              type="text"
+              onChange={handleInputChange}
+              error={errors.username}
+            />
+
+            <LabelInput
+              Label="Email"
+              name="email"
+              placeholder="Enter your email address"
+              type="email"
+              onChange={handleInputChange}
+              error={errors.email}
+            />
+
+            <LabelInput
+              Label="Mobile Number"
+              name="mobile"
+              placeholder="Enter your mobile number"
+              type="text"
+              onChange={handleInputChange}
+              error={errors.mobile}
+            />
+
+            <LabelInput
+              Label="Password"
+              name="password"
+              placeholder="Enter your password"
+              type="password"
+              onChange={handleInputChange}
+              error={errors.password}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="terms"
+                name="terms"
+                type="checkbox"
+                required
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
-
-              <LabelInput
-                Label="Email"
-                name="email"
-                placeholder="Enter your email"
-                type="email"
-                onChange={handleInputChange}
-                error={errors.email}
-              />
-
-              <LabelInput
-                Label="Mobile Number"
-                name="mobile"
-                placeholder="Enter your mobile number"
-                type="text"
-                onChange={handleInputChange}
-                error={errors.mobile}
-              />
-
-              <LabelInput
-                Label="Password"
-                name="password"
-                placeholder=""
-                type="password"
-                onChange={handleInputChange}
-                error={errors.password}
-              />
-
-              <button
-                type="submit"
-                className="mt-8 w-full text-white bg-white border border-black-300 focus:outline-none hover:bg-slate-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-              >
-                Sign up
-              </button>
+              <label htmlFor="terms" className="ml-2 block text-sm text-white">
+                I agree to the Terms and Conditions
+              </label>
             </div>
           </div>
+
+          <div>
+            <button
+              type="submit"
+              className="transition duration-300 ease-in-out transform hover:scale-105 group relative w-full flex justify-center py-2 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Sign Up
+            </button>
+          </div>
         </form>
+
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Already have an account?{" "}
+          <button
+            className="font-medium text-indigo-400 hover:text-indigo-200"
+            onClick={() => {
+              router.push("/signin");
+            }}
+          >
+            Sign In
+          </button>
+        </p>
       </div>
     </div>
-  )
+  );
 }
-
 function LabelInput({ Label, placeholder, onChange, type, error, name }) {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
 
   // Toggle password visibility only for password fields
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
+    setShowPassword(!showPassword);
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e) => {
+    const currentInput = e.target;
+    const formElements = Array.from(document.querySelectorAll("input")); // Get all input fields
+    const currentIndex = formElements.indexOf(currentInput);
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault(); // Prevent default behavior of the ArrowDown key
+      const nextInput = formElements[currentIndex + 1];
+      if (nextInput) nextInput.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault(); // Prevent default behavior of the ArrowUp key
+      const prevInput = formElements[currentIndex - 1];
+      if (prevInput) prevInput.focus();
+    }
+  };
 
   return (
     <div>
-      <div className="mt-8 relative">
-        <label className="block mb-1 text-sm font-semibold text-black">
+      <div>
+        <label htmlFor={name} className="block text-sm font-medium text-white">
           {Label}
         </label>
         <input
+          id={name}
           name={name}
           onChange={onChange}
+          onKeyDown={handleKeyDown} // Add keydown event handler
           type={type === "password" && showPassword ? "text" : type}
-          className="w-96 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+          className="text-black appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           placeholder={placeholder}
           required
         />
-        {/* Show eye icon only if it's a password input */}
-        {type === "password" && (
-          <span
-            className="absolute right-3 top-9 cursor-pointer text-gray-500"
-            onClick={togglePasswordVisibility}
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </span>
-        )}
         {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
     </div>
-  )
+  );
 }

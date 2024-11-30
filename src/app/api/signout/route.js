@@ -1,11 +1,11 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 export async function POST(request) {
   try {
-    // Read the JSON body from the request
+    // Parse the JSON body from the request
     const body = await request.json();
     console.log('Request body:', body); // Log the entire request body for debugging
 
@@ -17,16 +17,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Username is required' }, { status: 400 });
     }
 
-    // Log the database query for debugging
-    console.log('Updating user with username:', username);
-
+    // Update the user's signin status and lastActivity timestamp
     const updateResult = await prisma.user.update({
       where: { username },
-      data: { signin: false },
+      data: {
+        signin: false,
+        lastActivity: new Date(), // Set lastActivity to the current timestamp
+      },
     });
-
-    // Log the result of the update operation
-    console.log('Update result:', updateResult);
 
     // Create a response and clear the cookies
     const response = NextResponse.json({ message: 'Sign-out status updated' }, { status: 200 });
@@ -52,5 +50,7 @@ export async function POST(request) {
   } catch (error) {
     console.error('Error updating sign-out status:', error);
     return NextResponse.json({ error: 'Error updating sign-out status' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect(); // Ensure disconnection in finally block
   }
 }

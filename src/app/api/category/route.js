@@ -1,7 +1,6 @@
 // export const dynamic = "force-static"; 
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-// import * as cookie from 'cookie';
 
 const prisma = new PrismaClient();
 
@@ -58,6 +57,8 @@ export async function POST(request) {
   } catch (error) {
     console.error("Error fetching user details:", error);
     return NextResponse.json({ error: "Error fetching user details" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect(); // Ensure the database connection is closed after the request
   }
 }
 
@@ -86,7 +87,7 @@ export async function GET(request) {
       include: { author: true }
     });
 
-    console.log("Current Challengers List:", currentChallengersList);
+    // console.log("Current Challengers List:", currentChallengersList);
 
     if (currentChallengersList.length > 0) {
       const challengeUserList = await prisma.userFullDetails.findMany({
@@ -124,5 +125,7 @@ export async function GET(request) {
   } catch (error) {
     console.error("Error processing request:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect(); // Ensure the database connection is closed after the request
   }
 }

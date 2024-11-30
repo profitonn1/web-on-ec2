@@ -57,5 +57,7 @@ export async function POST(request) {
   } catch (e) {
     console.error("Signup error:", e);
     return NextResponse.json({ msg: "Signup failed" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect(); // Ensure disconnection in finally block
   }
 }

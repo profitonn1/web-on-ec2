@@ -11,9 +11,9 @@ export default function Signup() {
             <SigninAuth />
           </Suspense>
         </div>
-        <div className="hidden lg:block">
+        {/* <div className="hidden lg:block">
           <Quote slogan={`"Say Goodbye to Losses—Boost Your Profits with Our Gamified Stock Trading"`} />
-        </div>
+        </div> */}
       </div>
     </div>
   );

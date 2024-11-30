@@ -16,8 +16,8 @@ export async function fetchUserData() {
     const accessToken = getCookieValue("token")
     console.log("Document Cookies:", document.cookie)
 
-    console.log("userDetailsCookie:", userDetailsCookie) // Log to ensure it's fetched
-    console.log("accessToken:", accessToken) // Log to ensure it's fetched
+    // console.log("userDetailsCookie:", userDetailsCookie) // Log to ensure it's fetched
+    // console.log("accessToken:", accessToken) // Log to ensure it's fetched
 
     if (!userDetailsCookie || !accessToken) {
       console.log("User not authenticated or token missing")
@@ -35,7 +35,7 @@ export async function fetchUserData() {
     const decodedUserDetails = decodeURIComponent(userDetailsCookie)
     const parsedUserDetails = JSON.parse(decodedUserDetails)
 
-    console.log(parsedUserDetails, accessToken, "hiiiii")
+    // console.log(parsedUserDetails, accessToken, "hiiiii")
     // Verify the token with the backend (send the token in Authorization header)
     const verifyResponse = await axios.post(
       "/api/verifyToken",
@@ -64,7 +64,7 @@ export async function fetchUserData() {
         },
         withCredentials: true
       })
-      console.log("Balance Response:", balanceResponse.data)
+      // console.log("Balance Response:", balanceResponse.data)
 
       const timestamp = balanceResponse.data?.joinedDate || null // Default to null if undefined
       const date = timestamp

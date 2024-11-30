@@ -1,20 +1,19 @@
-
 // export const dynamic = "force-static"; 
 export const revalidate = 60; // Set a revalidation time in seconds
 
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient;
+// Create a Prisma Client instance
+const prisma = new PrismaClient();
 
 export async function GET(request) {
-
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("id");
     const username = searchParams.get("username");
 
-    console.log(`Received request with userId: ${userId}, username: ${username}`);
+    // console.log(`Received request with userId: ${userId}, username: ${username}`);
 
     if (!userId || !username) {
       console.error("Missing userId or username");
@@ -30,7 +29,7 @@ export async function GET(request) {
       },
     });
 
-    console.log("Fetched userFullDetails:", userFullDetails);
+    // console.log("Fetched userFullDetails:", userFullDetails);
 
     if (!userFullDetails) {
       console.error("No userFullDetails found for userId:", userId);
@@ -60,5 +59,7 @@ export async function GET(request) {
       console.error('Unknown error occurred');
       return NextResponse.json({ error: 'Unknown error occurred' }, { status: 500 });
     }
+  } finally {
+    await prisma.$disconnect(); // Ensure the database connection is closed after the request
   }
 }

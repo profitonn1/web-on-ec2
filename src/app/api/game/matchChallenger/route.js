@@ -1,94 +1,93 @@
 // export const dynamic = "force-static"; 
-import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
-const prisma = new PrismaClient()
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 export async function POST(request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get("id")
-    const username = searchParams.get("username")
+
+    const requestBody = await request.json();
+    const { data, data2 , userId, username} = requestBody;
+
+    console.log("id",userId , data)
 
     if (!userId || !username) {
       return NextResponse.json(
         { error: "User not authenticated" },
         { status: 401 }
-      )
+      );
     }
-    const requestBody = await request.json()
-    const { data, data2 } = requestBody
+
+  
 
     const rangeIntersection = (range1, range2) => {
-      const [start1, end1] = range1
-      const [start2, end2] = range2
+      const [start1, end1] = range1;
+      const [start2, end2] = range2;
 
       // Find the intersection range
-      const intersectionStart = Math.max(start1, start2)
-      const intersectionEnd = Math.min(end1, end2)
+      const intersectionStart = Math.max(start1, start2);
+      const intersectionEnd = Math.min(end1, end2);
 
       // If there's an intersection, return the intersection range
       if (intersectionStart <= intersectionEnd) {
-        return [intersectionStart, intersectionEnd]
+        return [intersectionStart, intersectionEnd];
       }
 
       // If there's no intersection, return null
-      return null
-    }
+      return null;
+    };
 
-    const bet1 = [data.betStartRange, data.betEndRange]
-    const ask2 = [data2.askStartRange2, data2.askEndRange2]
+    const bet1 = [data.betStartRange, data.betEndRange];
+    const ask2 = [data2.askStartRange2, data2.askEndRange2];
+    const bet2 = [data2.betStartRange2, data2.betEndRange2];
+    const ask1 = [data.askStartRange, data.askEndRange];
 
-    const bet2 = [data2.betStartRange2, data2.betEndRange2]
-    const ask1 = [data.askStartRange, data.askEndRange]
-
-    const intersection1 = rangeIntersection(bet1, ask2)
-    const intersection2 = rangeIntersection(ask1, bet2)
+    const intersection1 = rangeIntersection(bet1, ask2);
+    const intersection2 = rangeIntersection(ask1, bet2);
 
     if (intersection1 !== null && intersection2 !== null) {
       const challengerBet = Math.floor(
         (intersection1[0] + intersection1[1]) / 2
-      )
-      const opponentBet = Math.floor((intersection2[0] + intersection2[1]) / 2)
+      );
+      const opponentBet = Math.floor((intersection2[0] + intersection2[1]) / 2);
 
-      console.log(data.challengeToname)
+      console.log(data.challengeToname);
 
       const challengedTo = await prisma.user.findUnique({
         where: {
-          username: data.challengeToname
-        }
-      })
+          username: data.challengeToname,
+        },
+      });
 
       if (challengedTo) {
         const opponent = await prisma.challengeGameRangeDetails.findMany({
           where: {
-            opponentId: challengedTo.id
-          }
-        })
+            opponentId: challengedTo.id,
+          },
+        });
 
         const challenger = await prisma.challengeGameRangeDetails.findMany({
           where: {
-            authorId: userId
-          }
-        })
+            authorId: userId,
+          },
+        });
 
         const match = await prisma.challengeGameRangeDetails.findFirst({
           where: {
             opponentId: challengedTo.id,
-            authorId: userId
-          }
-        })
+            authorId: userId,
+          },
+        });
 
-        console.log("opponent", opponent)
-        console.log("match", match)
+        console.log("opponent", opponent);
+        console.log("match", match);
 
-        let shouldUpdatePaired = true // Flag to track if all conditions are met
-
-        // let usermatchedWith = "";
+        let shouldUpdatePaired = true; // Flag to track if all conditions are met
 
         for (let i = 0; i < challenger?.length; i++) {
           for (let j = 0; j < opponent?.length; j++) {
             // Log for debugging purposes
-            console.log(challenger[i], opponent[j])
+            console.log(challenger[i], opponent[j]);
 
             // If any of the conditions fail, set the flag to false
             if (
@@ -96,14 +95,14 @@ export async function POST(request) {
               challenger[i]?.paired === true ||
               match?.paired === true
             ) {
-              shouldUpdatePaired = false
-              break // Exit the inner loop if condition is not met
+              shouldUpdatePaired = false;
+              break; // Exit the inner loop if condition is not met
             }
           }
 
           // If the flag is false, no need to continue checking further challengers
           if (!shouldUpdatePaired) {
-            break
+            break;
           }
         }
 
@@ -111,33 +110,35 @@ export async function POST(request) {
         if (shouldUpdatePaired) {
           await prisma.challengeGameRangeDetails.update({
             where: {
-              id: match?.id
+              id: match?.id,
             },
             data: {
-              paired: true
-            }
-          })
+              paired: true,
+            },
+          });
           return NextResponse.json(
             { challengerBet, intersection1, intersection2, opponentBet },
             { status: 201 }
-          )
+          );
         } else {
-          return NextResponse.json({ error: "Already Paired" }, { status: 404 })
+          return NextResponse.json({ error: "Already Paired" }, { status: 404 });
         }
       }
 
       return NextResponse.json(
         { challengerBet, intersection1, intersection2, opponentBet },
         { status: 201 }
-      )
+      );
     }
 
-    return NextResponse.json({ msg: "No Common Price Range " }, { status: 401 })
+    return NextResponse.json({ msg: "No Common Price Range " }, { status: 401 });
   } catch (error) {
-    console.error("Error:", error) // Log the error
+    console.error("Error:", error); // Log the error
     return NextResponse.json(
       { msg: "Error occurred", error: error },
       { status: 500 }
-    )
+    );
+  } finally {
+    await prisma.$disconnect(); // Ensure the database connection is closed after the request
   }
 }

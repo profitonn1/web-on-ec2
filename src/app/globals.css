@@ -19,3 +19,298 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* ToggleButton  In Terminal */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+input:checked {
+  background-color: #22c55e; /* bg-green-500 */
+}
+
+input:checked ~ span:last-child {
+  --tw-translate-x: 1.75rem; /* translate-x-7 */
+}
+
+.optionStyle:hover {
+  background-color:#383746 /* Change this to your desired hover color */
+}
+
+
+
+
+/* input box in terminal */
+
+
+/* Hides the spinner controls in the input */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none; /* Standard property */
+  margin: 0;
+}
+
+.no-spinner[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield; /* Standard property */
+  border: none; /* Removes the border */
+}
+
+
+
+/* open , close scroll bar  in terminal
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 2px; /* Very thin vertical scrollbar */
+  height: 3px; /* Thin horizontal scrollbar if needed */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #18181B; /* Track color */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: white; /* Thumb color */
+  border-radius: 5px; /* Rounded edges for the thumb */
+  width: 10%; /* Visually reduce thumb length by setting a fixed height */
+  /* You can adjust the height percentage to make it visually shorter */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #999; /* Thumb hover effect */
+} */
+
+/* Apply to the main CSS file or inline within a <style> tag */
+
+.table-body::-webkit-scrollbar {
+  width: 6px; /* Adjust the width to make it thinner */
+}
+
+.table-body::-webkit-scrollbar-thumb {
+  background-color: #6b7280; /* Customize scrollbar thumb color */
+  border-radius: 4px; /* Optional: adds rounded edges */
+}
+
+.table-body::-webkit-scrollbar-track {
+  background-color: #1f2937; /* Customize scrollbar track color */
+}
+
+/* Firefox */
+.table-body {
+  scrollbar-width: thin; /* Reduces scrollbar width */
+  scrollbar-color: #6b7280 #1f2937; /* thumb color | track color */
+}
+
+
+
+input:checked {
+  background-color: #22c55e; 
+}
+
+input:checked ~ span:last-child {
+  --tw-translate-x: 1.75rem; 
+}
+
+/* Define the keyframes for the glow effects */
+@keyframes glow1 {
+  0%, 100% {
+    box-shadow: 0 0 90px 10px rgba(235, 209, 9, 0.3);
+  }
+  25% {
+    box-shadow: 0 0 90px 10px rgba(213, 223, 66, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 90px 10px rgba(225, 238, 120, 0.1);
+  }
+  75% {
+    box-shadow: 0 0 90px 10px rgba(220, 232, 6, 0.2);
+  }
+}
+
+@keyframes glow2 {
+  0%, 100% {
+    box-shadow: 0 0 95px 25px rgb(0, 0, 255, 0.4);
+  }
+  25% {
+    box-shadow: 0 0 95px 25px rgb(0, 0, 200, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 95px 25px rgb(0, 0, 170, 0.4);
+  }
+  75% {
+    box-shadow: 0 0 95px 25px rgb(0, 0, 80, 0.3);
+  }
+}
+
+@keyframes glow3 {
+  0%, 100% {
+    box-shadow: 0 0 20px 5px rgba(0, 0, 255, 0.2);  /* Soft blue glow */
+  }
+  25% {
+    box-shadow: 0 0 20px 5px rgba(0, 0, 200, 0.3);  /* Slightly darker blue */
+  }
+  50% {
+    box-shadow: 0 0 20px 5px rgba(0, 0, 170, 0.2);  /* A more subtle blue */
+  }
+  75% {
+    box-shadow: 0 0 20px 5px rgba(0, 0, 130, 0.15);  /* Lighter soft blue */
+  }
+}
+
+/* Apply the animations to classes */
+.glow1 {
+  animation: glow1 5s infinite;
+}
+
+.glow2 {
+  animation: glow2 5s infinite;
+}
+
+.glow3 {
+  animation: glow3 5s infinite;
+}
+
+
+/* text glow animation */
+@keyframes glow {
+    0% {
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 255, 255, 0.5);
+    }
+    50% {
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.7), 0 0 40px rgba(255, 255, 255, 0.6), 0 0 50px rgba(255, 255, 255, 0.5);
+    }
+    100% {
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  .glowing-text {
+    animation: glow 2s infinite alternate;
+  }
+
+
+  /* add animation on scroll in */
+
+  .scroll-fade {
+    opacity: 0;
+    transform: translateY(30px);  /* Move the element slightly down initially */
+    transition: opacity 1.4s ease, transform 1.4s ease;
+}
+
+/* Animation applied when the element is in view */
+.scroll-fade.visible {
+    opacity: 1;
+    transform: translateY(0);  /* Move the element to its original position */
+}
+
+
+/* slide in from right */
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100%);  /* Start off-screen to the right */
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0); /* Move to original position */
+    opacity: 1;
+  }
+}
+
+.animate-slide-right {
+  animation: slideInRight 1s ease-out forwards;
+}
+
+
+/* diagonal fade in animation */
+@keyframes diagonalFadeIn {
+  0% {
+    transform: translate(50%, 50%);  /* Start off from a lower right position */
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0); /* End at its original position */
+    opacity: 1;
+  }
+}
+
+.animate-diagonal-fade {
+  animation: diagonalFadeIn 1.5s ease-in-out forwards;
+}
+
+.text-gradient {
+  background: linear-gradient(45deg, #ff6a00, #ee0979, #fffb00);
+  background-size: 300% 300%;
+  animation: gradientAnimation 6s ease infinite;
+  color: transparent;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.2), 0 0 15px rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes growEffect {
+  0% {
+    transform: scale(0.8);  /* Start smaller */
+    opacity: 0;  /* Initially hidden */
+  }
+  100% {
+    transform: scale(1);  /* End at original size */
+    opacity: 1;  /* Fully visible */
+  }
+}
+
+/* Apply animation */
+.grow {
+  animation: growEffect 2s ease-out forwards; /* Duration: 0.5s, easing: ease-out */
+}
+
+/* Define the animation for infinite sliding */
+@keyframes slideEffect {
+  0% {
+    transform: translateX(100%); /* Start from outside on the right */
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  75%{
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(-100%); /* Move to the left */
+    opacity: 0.1;
+  }
+}
+
+/* Apply sliding effect to the container holding the images */
+.animate-slide {
+  animation: slideEffect 8s linear infinite; /* Duration: 10s, infinite loop */
+}
+
+.overflow-hidden {
+  overflow: hidden; /* Ensures content doesn't overflow outside the container */
+}
+
+@keyframes growEffect2 {
+  0% {
+    transform: scale(0.8);  /* Start smaller */
+    opacity: 0;  /* Initially hidden */
+  }
+  100% {
+    transform: scale(1);  /* End at original size */
+    opacity: 1;  /* Fully visible */
+  }
+}
+
+/* Apply animation */
+.grow2 {
+  animation: growEffect2 1s ease-out forwards; /* Duration: 0.5s, easing: ease-out */
+}

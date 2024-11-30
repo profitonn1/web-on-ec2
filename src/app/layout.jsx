@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import ProtectedRoute from "./ProtectedRoute";
+import { TradeDataProvider } from '../app/components/TradeDataContext';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,7 +26,9 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ProtectedRoute>
-        {children}
+          <TradeDataProvider>
+            {children}
+        </TradeDataProvider>
         </ProtectedRoute>
       </body>
     </html>

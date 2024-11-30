@@ -8,10 +8,10 @@ export default function Signup (){
             <div>
                 <Auth />
             </div>
-            <div className="hidden lg:block">
+            {/* <div className="hidden lg:block">
                 <Quote slogan={`"Maximize Your Gains with Our Fun and Engaging Stock Trading Game!"`}/>
             </div>
-            
+             */}
         </div>
     </div>
 }

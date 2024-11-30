@@ -1,35 +1,27 @@
-// export const dynamic = 'force-static';
-import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { NextResponse } from 'next/server';
+import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
-export async function PUT(request) {
+export async function PUT(req) {
   try {
-    const { id, newBalance } = await request.json()
+    const { id, newBalance } = await req.json();
 
-    // Optional: Ensure newBalance is a number (if necessary)
-    if (typeof newBalance !== "number") {
-      return NextResponse.json(
-        { error: "newBalance must be a number" },
-        { status: 400 }
-      )
-    }
+    // Convert newBalance and id to strings if necessary
+    const balanceToString = String(newBalance);
+    const newID = String(id);
 
-    // Update the user's balance
+    // Update user balance in the database
     const updatedUser = await prisma.userFullDetails.update({
-      where: { authorId: id }, // Ensure that authorId is correct
-      data: { balanceINR: newBalance }, // Ensure that newBalance is a number
-      include: { author: true }
-    })
+      where: { authorId: newID },
+      data: { balanceINR: balanceToString },
+    });
 
-    console.log("Updated User ID:", id)
-    return NextResponse.json(updatedUser, { status: 200 })
+    return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
-    console.error("Error updating user balance:", error)
-    return NextResponse.json(
-      { error: "Failed to update balance" },
-      { status: 500 }
-    )
+    console.error("Error updating user balance:", error);
+    return NextResponse.json({ error: "Failed to update balance" }, { status: 500 });
+  }finally {
+    await prisma.$disconnect(); // Ensure the database connection is closed after the request
   }
 }

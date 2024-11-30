@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -21,10 +21,15 @@ model User {
   password           String
   signin             Boolean      @default(false)
   joinedDate         DateTime
+  signInTime         DateTime     @default(now())  // Track when user signs in
+  lastActivity       DateTime     @default(now())
   userfulldetails             UserFullDetails[]
   userEachMatchdetails            UserEachMatchDetails[]
   usercurrentPairedDetails           UserCurrentPairedDetails[] 
-  challengeGameRangeDetails       ChallengeGameRangeDetails[]   
+  challengeGameRangeDetails       ChallengeGameRangeDetails[]  @relation("Challenger")
+  PlayerTradingStyleDetails       PlayerTradingStyleDetails[]
+  UserAllTrades                           UserAllTrades[]
+  PartialDemoBalance              PartialDemoBalance[]
 }
 
 model  TotalAutomaticHistory {
@@ -61,7 +66,7 @@ model UserFullDetails {
   Ranking            String
   balanceINR         String
   author             User          @relation(fields:[authorId] , references: [id])
-  authorId           String
+  authorId           String        @unique 
 }
 
 model UserEachMatchDetails{
@@ -77,8 +82,8 @@ model UserEachMatchDetails{
 model UserCurrentPairedDetails{
   id                 String       @unique @id @default(uuid())
   author             User         @relation(fields:[authorId] , references: [id])
-  authorId           String       @unique
-  isPaired           Boolean       @default(false)
+  authorId           String       
+  isPaired           Boolean      @default(false)
   opponentId         String?
   amount             String?
   category           String
@@ -86,7 +91,7 @@ model UserCurrentPairedDetails{
 
 model ChallengeGameRangeDetails{
    id                 String             @unique @id @default(uuid())
-   author             User               @relation(fields:[authorId] , references: [id])
+   author             User               @relation( "Challenger" ,fields:[authorId] , references: [id])
    authorId           String  
    paired             Boolean?           @default(false)  
    categoryChosen     String
@@ -99,11 +104,93 @@ model ChallengeGameRangeDetails{
 }
 
 model ChallengeResendGameRangeDetails{
-  id                 String                            @unique @id @default(uuid())
-  author             ChallengeGameRangeDetails         @relation(fields:[authorId] , references: [id])
-  authorId           String  
+  id                  String                            @unique @id @default(uuid())
+  author              ChallengeGameRangeDetails         @relation(fields:[authorId] , references: [id])
+  authorId            String  
   betStartRange2      String?
   betEndRange2        String?
   askStartRange2      String?
   askEndRange2        String?
+}
+
+// model PlayerTradingStyleDetails{
+//   id                 String               @unique @id @default(uuid())
+//   currency           String?
+//   Indicators         Json   
+//   Tools              Json?
+//   sellPrice          Float?
+//   buyPrice           Float?
+//   buyOrSellTime      DateTime?
+//   author             User                  @relation(fields:[authorId] , references: [id])
+//   authorId           String  
+                 
+// }
+
+
+
+model UserAllTrades {
+  id                              Int            @unique @id @default(autoincrement())  // Change to Int and use autoincrement
+  author                          User           @relation(fields:[authorId] , references: [id])
+  authorId                        String  
+  buyOrSell                       String    
+  symbol                          String   
+  openingprice                    Float
+  margin                          Float      
+  unitsOrLots                     Float
+  profitOrLoss                    Float?
+  takeProfitValue                 Float?
+  stopLossValue                   Float?
+  closingPrice                    Float?
+  openingTime                     DateTime?     
+  closingTime                     DateTime?     
+}
+
+
+model PlayerTradingStyleDetails {
+  id                              String         @unique @id @default(uuid())
+  indicatorName                   Json?    
+  toolsName                       Json? 
+  timeInterval                    Json? 
+  symbol                          Json?   
+  author                          User           @relation(fields:[authorId] , references: [id])
+  authorId                        String 
+}
+
+model ChallangeHistory{
+  id String  @unique @id @default(uuid())
+  player1 String 
+  player2 String
+  player1Bet Float
+  player2Bet Float
+  win String?
+  date DateTime
+}
+
+
+// model ChallengeHistory {
+//   id                              String         @unique @id @default(uuid())
+//   player1                         String    
+//   player2                         String?    
+//   player1Bet                      Float?
+//   player2Bet                      Float?
+//   win                             String?
+//   player1DemoBalance              Float?
+//   player2DemoBlance               Float?
+//   matchStartedAt                  DateTime?
+//   matchOverAt                     DateTime? 
+// }
+
+model  PartialDemoBalance{
+  id                             String        @unique @id @default(uuid())
+  player                         String        @unique
+  demoBalance                    Float
+  author                         User         @relation(fields:[authorId] , references: [id])
+  authorId                       String 
+  category                       String?
+}
+
+model symmbolPrice{
+id                              Int          @unique @id @default(autoincrement()) 
+btcusd                         String        @unique  
+ethusd                         String        @unique  
 }

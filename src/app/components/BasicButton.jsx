@@ -14,7 +14,7 @@ export default function BasicChallengeButton({ onClick, onItemClick }) {
   }
   useEffect(() => {
     const fetchData = async () => {
-      try {
+      try { 
         const userDetailsCookie = getCookieValue("userDetails")
 
         if (userDetailsCookie) {
@@ -52,9 +52,9 @@ export default function BasicChallengeButton({ onClick, onItemClick }) {
 
   return (
     <div className="flex justify-center">
-      <button
+      <div
         onClick={onClick}
-        className="border-2 w-5/6 max-w-full bg-blue-700 text-sm lg:text-lg border-gray-300 rounded-lg"
+        className="border-2 cursor-pointer w-5/6 max-w-full bg-indigo-700 items-center ml-8 text-sm lg:text-lg -mt-8 border-gray-300"
       >
         {data.length > 0 ? (
           data
@@ -63,23 +63,23 @@ export default function BasicChallengeButton({ onClick, onItemClick }) {
               <div
                 // Ensure item.id is unique
                 key={item.id}
-                className={`lg:p-2 hover:bg-blue-600 flex justify-around  ${
+                className={`hover:bg-indigo-600 flex justify-around  ${
                   index === data.length - 1
-                    ? "mb-2"
+                    ? "mb-1"
                     : "border-b-2 border-gray-300"
                 }`}
                 onClick={() => onItemClick(item.username)}
               >
-                <p>{item.ranking}</p>
-                <p>{item.username}</p>
-                <p>{item.averageroc}</p>
-                <p>{item.winRate}</p>
+                <p className="w-[25%] text-center">{item.ranking}</p>
+                <p className="w-[25%] text-center">{item.username}</p>
+                <p className="w-[25%] text-center">{item.averageroc}</p>
+                <p className="w-[25%] text-center">{item.winRate}</p>
               </div>
             ))
         ) : (
           <p>No data available</p>
         )}
-      </button>
+      </div>
     </div>
   )
 }

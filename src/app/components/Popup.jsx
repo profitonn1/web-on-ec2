@@ -1,293 +1,233 @@
-"use client"
-import { useState, useRef, useEffect } from "react"
-import BasicChallengeButton from "./BasicButton"
-import axios from "axios"
-import { z } from "zod"
-import DoubleEndedSlider from "./slider"
+"use client";
+import { useState, useRef, useEffect } from "react";
+import BasicChallengeButton from "./BasicButton";
+import axios from "axios";
+import { z } from "zod";
 
 export default function Popup2() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const modalRef = useRef(null) // Ref to keep track of the modal
-  const [selectUsername, setSelectedMobile] = useState(null)
-  const [showAlert, setShowAlert] = useState(false)
-  const [alertMessage, setAlertMessage] = useState("")
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalRef = useRef(null);
+  const [selectUsername, setSelectUsername] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [betStartRange, setBetStartRange] = useState(50);
+  const [betEndRange, setBetEndRange] = useState(50);
+  const [askStartRange, setAskStartRange] = useState(50);
+  const [askEndRange, setAskEndRange] = useState(50);
 
-  const [selectedRange, setSelectedRange] = useState({
-    betStartRange: null,
-    betEndRange: null,
-    askStartRange: null,
-    askEndRange: null
-  })
+  // Update ask ranges when bet ranges change
+  useEffect(() => {
+    setAskStartRange(Math.min(betStartRange * 1.5, 200));
+  }, [betStartRange]);
 
-  const handleItemClick = username => {
-    setSelectedMobile(username)
-  }
+  const handleItemClick = (username) => {
+    setSelectUsername(username);
+  };
+  useEffect(() => {
+    setAskEndRange(Math.min(betEndRange * 1.5, 200));
+  }, [betEndRange]);
 
   const bchallengeRangeSchema = z.object({
-    betStartRange: z
-      .number()
-      .min(50)
-      .max(200),
-    betEndRange: z
-      .number()
-      .min(50)
-      .max(200),
-    askStartRange: z
-      .number()
-      .min(50)
-      .max(200),
-    askEndRange: z
-      .number()
-      .min(50)
-      .max(200)
-  })
+    betStartRange: z.number().min(50).max(200),
+    betEndRange: z.number().min(50).max(200),
+    askStartRange: z.number().min(50).max(200),
+    askEndRange: z.number().min(50).max(200),
+  });
 
-  const fetchData = async e => {
-    e.preventDefault()
+  const fetchData = async (e) => {
+    e.preventDefault();
 
-    try {
-      const { success } = bchallengeRangeSchema.safeParse(selectedRange)
+    const validation = bchallengeRangeSchema.safeParse({
+      betStartRange: betStartRange,
+      betEndRange: betEndRange,
+      askStartRange: askStartRange,
+      askEndRange: askEndRange,
+    });
 
-      if (success) {
-        //challengeSentBackend
+    if (validation.success) {
+      try {
         await axios.post("/api/challengeRange", {
           body: JSON.stringify({
-            betStartRange: String(selectedRange.betStartRange),
-            betEndRange: String(selectedRange.betEndRange),
-            askStartRange: String(selectedRange.askStartRange),
-            askEndRange: String(selectedRange.askEndRange),
-            username: String(selectUsername)
-          })
-        })
-
-        // If the request is successful (status 200)
-        setAlertMessage("Challenge sent to Player, Wait till he accepts!!!")
-        setShowAlert(true)
-        setTimeout(() => setShowAlert(false), 1500)
-        setTimeout(() => setIsModalOpen(false), 1500)
-
-        return
-      } else {
-        // Invalid input range case
-        setAlertMessage("Please Enter values in given Range")
-        setShowAlert(true)
-        setTimeout(() => setShowAlert(false), 1500)
+            betStartRange: String(betStartRange),
+            betEndRange: String(betEndRange),
+            askStartRange: String(askStartRange),
+            askEndRange: String(askEndRange),
+            username: String(selectUsername),
+          }),
+        });
+        setAlertMessage("Challenge sent!");
+        setShowAlert(true);
+        setTimeout(() => {
+          setShowAlert(false);
+          setIsModalOpen(false);
+        }, 1500);
+      } catch (error) {
+        handleError(error);
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        // Check if the error is an AxiosError
-        const status = error.response?.status // Get the response status if it exists
-
-        if (status === 404) {
-          setAlertMessage("Challenge already sent")
-          setTimeout(() => setIsModalOpen(false), 1500)
-        } else {
-          setAlertMessage("An error occurred while sending the challenge.")
-        }
-      } else {
-        // Handle unexpected errors
-        setAlertMessage("An unexpected error occurred.")
-      }
-
-      setShowAlert(true)
-      setTimeout(() => setShowAlert(false), 1500)
+    } else {
+      setAlertMessage("Please enter values in the given range.");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 1500);
     }
-  }
+  };
 
-  // Close the modal if clicked outside
+  const handleError = (error) => {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      if (status === 404) {
+        setAlertMessage("Challenge already sent.");
+      } else {
+        setAlertMessage("An error occurred while sending the challenge.");
+      }
+    } else {
+      setAlertMessage("An unexpected error occurred.");
+    }
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 1500);
+  };
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        setIsModalOpen(false)
+        setIsModalOpen(false);
       }
     }
-
-    // Add event listener to detect clicks
-    document.addEventListener("mousedown", handleClickOutside)
-
-    // Cleanup event listener on component unmount
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [modalRef])
-
-  const buttonFunction = () => {
-    // Set isModalOpen to true
-    setIsModalOpen(true)
-  }
-
-  useEffect(() => {
-    if (isModalOpen) {
-      setSelectedRange({
-        betStartRange: null,
-        betEndRange: null,
-        askStartRange: null,
-        askEndRange: null
-      })
-    }
-  }, [isModalOpen])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [modalRef]);
 
   return (
-    <div className="lg:ml-52  md:ml-56 sm:ml-60">
-      <div className="realtive top-20 left-1/2 right-1/2 z-50">
-        {/* Alert */}
-        {showAlert && (
-          <div className="absolute  top-20 z-50 left-1/2 right-1/2 transform -translate-x-1/2 w-full max-w-lg">
-            <div
-              className="p-4 mb-4 text-lg bg-[#b4ecc1] text-[#28a745] rounded-lg  dark:text-[#155724] border-2 border-[#28a745] shadow-3xl"
-              role="alert"
-            >
-              {alertMessage}
-            </div>
+    <>
+    {/* Alert Message */}
+    {showAlert && (
+        <div className="absolute mt-0 left-1/2 transform -translate-x-1/2 max-w-lg z-[60]">
+          <div
+            className="p-4 mb-4 text-xl font-mono glow2 bg-black text-white rounded-lg border-2 border-white"
+            role="alert"
+          >
+            {alertMessage}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+     <div className="lg:ml-52 md:ml-56 sm:ml-60 relative">
+      
 
+      {/* Button to trigger modal */}
       <BasicChallengeButton
-        onClick={buttonFunction}
+        onClick={() => setIsModalOpen(true)}
         onItemClick={handleItemClick}
       />
 
-      <div
-        id="select-modal"
-        aria-hidden={!isModalOpen}
-        className={`${
-          isModalOpen ? "flex" : "hidden"
-        } overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-10 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full`}
-      >
-        <div
-          ref={modalRef}
-          className="relative p-4 w-4/6 max-w-md max-h-full lg:mt-20 md:mt-20"
-        >
-          <div className="relative  rounded-lg shadow bg-orange-600">
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Select Range
-              </h3>
-              <button
-                type="button"
-                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm h-8 w-8 ms-auto inline-flex justify-center items-center dark:hover:bg-orange-400 dark:hover:text-white"
-                onClick={() => setIsModalOpen(false)}
-              >
-                <svg
-                  className="w-3 h-3"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 14 14"
+      {/* Modal Popup */}
+      {isModalOpen && (
+        <>
+          <div className="fixed inset-0 bg-black opacity-50 backdrop-blur-md z-40" />
+          <div className="fixed top-1/2 left-1/2 z-50 w-4/6 max-w-md transform -translate-x-1/2 -translate-y-1/2 bg-black rounded-lg shadow-lg glow-effect">
+            <div ref={modalRef} className="p-4">
+              <h1 className="text-center font-mono text-2xl font-extrabold">
+                Select Bet Amount
+              </h1>
+              <div className="my-8">
+                <h2 className="font-mono">
+                  Min Bet Amount: <span>{betStartRange}</span>
+                </h2>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  value={betStartRange}
+                  onChange={(e) => setBetStartRange(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="my-8">
+                <h2 className="font-mono">
+                  Max Bet Amount: <span>{betEndRange}</span>
+                </h2>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  value={betEndRange}
+                  onChange={(e) => setBetEndRange(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="my-8">
+                <h2 className="font-mono">
+                  Min Ask Amount: <span>{askStartRange}</span>
+                </h2>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  value={askStartRange}
+                  disabled
+                  className="w-full"
+                />
+              </div>
+              <div className="my-8">
+                <h2 className="font-mono">
+                  Max Ask Amount: <span>{askEndRange}</span>
+                </h2>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  value={askEndRange}
+                  disabled
+                  className="w-full"
+                />
+              </div>
+              <div className="flex gap-x-2">
+                <button
+                  onClick={fetchData}
+                  className="mt-4 w-[30%] text-white font-mono tracking-widest inline-flex justify-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
                 >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                  />
-                </svg>
-                <span className="sr-only">Close modal</span>
-              </button>
-            </div>
-
-            <div className="p-4 md:p-5">
-              <p className="text-white mb-2 text-center">Bet</p>
-
-              <div className="w-full ">
-                <input
-                  min="50"
-                  max="200"
-                  onChange={e =>
-                    setSelectedRange({
-                      ...selectedRange,
-                      betStartRange: parseInt(e.target.value, 10) || null // Parse as a number, fallback to null
-                    })
-                  }
-                  // Handle null as an empty string
-                  value={
-                    selectedRange.betStartRange !== null
-                      ? selectedRange.betStartRange
-                      : ""
-                  }
-                  className="mb-4 text-black w-full rounded-lg p-2 placeholder-gray-500"
-                  placeholder="start range"
-                  type="number"
-                />
-
-                <input
-                  min="50"
-                  max="200"
-                  onChange={e =>
-                    setSelectedRange({
-                      ...selectedRange,
-                      betEndRange: parseInt(e.target.value, 10) || null // Parse as a number, fallback to null
-                    })
-                  }
-                  // Handle null as an empty string
-                  value={
-                    selectedRange.betEndRange !== null
-                      ? selectedRange.betEndRange
-                      : ""
-                  }
-                  className="mb-4 text-black w-full rounded-lg p-2 placeholder-gray-500"
-                  placeholder="end range"
-                  type="number"
-                />
+                  Submit
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(false)} // Close the popup
+                  className="mt-4 w-[30%] bg-gray-600 hover:bg-gray-500 text-white p-2 rounded"
+                >
+                  Close
+                </button>
               </div>
-
-              <p className="text-white mb-2 text-center mt-4">Ask</p>
-
-              <div className="w-full">
-                <input
-                  min="50"
-                  max="200"
-                  onChange={e =>
-                    setSelectedRange({
-                      ...selectedRange,
-                      askStartRange: parseInt(e.target.value, 10) || null // Parse as a number, fallback to null
-                    })
-                  }
-                  // Handle null as an empty string
-                  value={
-                    selectedRange.askStartRange !== null
-                      ? selectedRange.askStartRange
-                      : ""
-                  }
-                  className="mb-4 text-black w-full rounded-lg p-2 placeholder-gray-500"
-                  placeholder="start range"
-                  type="number"
-                />
-
-                <input
-                  min="50"
-                  max="200"
-                  onChange={e =>
-                    setSelectedRange({
-                      ...selectedRange,
-                      askEndRange: parseInt(e.target.value, 10) || null // Parse as a number, fallback to null
-                    })
-                  }
-                  // Handle null as an empty string
-                  value={
-                    selectedRange.askEndRange !== null
-                      ? selectedRange.askEndRange
-                      : ""
-                  }
-                  className="mb-4 text-black w-full rounded-lg p-2 placeholder-gray-500"
-                  placeholder="end range"
-                  type="number"
-                />
-
-                <DoubleEndedSlider />
-              </div>
-              <button
-                onClick={fetchData}
-                className="mt-4 text-white inline-flex w-full justify-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Submit
-              </button>
             </div>
           </div>
-        </div>
-      </div>
+          <style jsx>{`
+            @keyframes glow {
+              0% {
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.4),
+                  0 0 20px rgba(255, 255, 255, 0.3),
+                  0 0 25px rgba(255, 255, 255, 0.2),
+                  0 0 30px rgba(255, 255, 255, 0.1);
+              }
+              50% {
+                box-shadow: 0 0 25px rgba(255, 255, 255, 0.5),
+                  0 0 30px rgba(255, 255, 255, 0.4),
+                  0 0 35px rgba(255, 255, 255, 0.3),
+                  0 0 40px rgba(255, 255, 255, 0.2);
+              }
+              100% {
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.4),
+                  0 0 20px rgba(255, 255, 255, 0.3),
+                  0 0 25px rgba(255, 255, 255, 0.2),
+                  0 0 30px rgba(255, 255, 255, 0.1);
+              }
+            }
+
+            .glow-effect {
+              animation: glow 1.5s infinite alternate;
+              border-radius: 12px; /* Optional: to soften the edges */
+            }
+          `}</style>
+        </>
+      )}
     </div>
-  )
+    </>
+   
+  );
 }

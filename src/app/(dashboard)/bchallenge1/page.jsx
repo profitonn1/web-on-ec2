@@ -5,10 +5,11 @@ import Popup2 from "../../components/Popup"
 // import { useRouter } from 'next/navigation';
 // import { useSession } from 'next-auth/react';
 import SideAppbar from "../../components/SideAppbar"
-import ChallengeByPopup from "../../components/ChallengeByPopup"
+import ChallengeByPopup from "../../components/ChallengeByPopup" 
+import DashAppbar from "../../components/DashAppbar"
 
 export default function Basic() {
-  const [, setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(true)
   const modalRef = useRef(null)
   const [showPopup, setShowPopup] = useState(false)
   const [popUpOpen, setPopUpOpen] = useState(false)
@@ -89,29 +90,30 @@ export default function Basic() {
   }, [])
 
   return (
-    <div className="bg-gray-950 min-h-screen text-white ">
+    <div className="bg-black min-h-screen text-white "> 
+      <DashAppbar/>
       <SideAppbar
         onClickTo={() => {}}
         noofChallengesGot={noofChallengesGot}
         noofChallengesSent={noofChallengesSent}
         onClickBy={() => setPopUpOpen(true)}
       />
-      <div className="md:p-10 lg:ml-52 md:ml-56 sm:ml-60 lg:p-20 p-5 mt-14 lg:mt-0 md-mt-0">
-        <div className="text-2xl font-mono font-bold text-blue-400">
-          Select Your Opponent
+      <div className="md:p-10 lg:ml-60 md:ml-56 sm:ml-60 w-5/6 lg:p-20 p-5 mt-14 lg:mt-0 md-mt-0">
+        <div className="mt-12 ml-4 text-4xl font-sans font-bold text-white">
+          Select Your Opponent:
         </div>
-        <div className="border-2 mt-4  border-gray-300 rounded-lg text-center">
-          <div className="grid grid-cols-4 p-4 bg-blue-700 rounded-lg">
-            <div className="text-sm text-white font-semibold lg:text-2xl">
+        <div className="border-2 mt-4 ml-4 border-gray-300 rounded-lg text-center">
+          <div className="grid grid-cols-4 p-2 bg-indigo-900 items-center rounded-lg">
+            <div className="text-sm text-white font-semibold lg:text-lg">
               Rank
             </div>
-            <div className="text-sm text-white font-semibold lg:text-2xl">
+            <div className="text-sm text-white font-semibold lg:text-lg">
               Name
             </div>
-            <div className="text-sm text-white font-semibold lg:text-2xl">
+            <div className="text-sm text-white font-semibold lg:text-lg">
               AverageRoc
             </div>
-            <div className="text-sm text-white font-semibold lg:text-2xl">
+            <div className="text-sm text-white font-semibold lg:text-lg">
               WinRate
             </div>
           </div>
