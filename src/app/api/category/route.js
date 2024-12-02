@@ -17,7 +17,7 @@ export async function POST(request) {
   try {
     console.log(categoryChosen);
 
-    const category = await prisma.userCurrentPairedDetails.findFirst({
+    const category = await prisma.userAutomaticPairedDetails.findFirst({
       where: {
         authorId: userId,
       },
@@ -28,7 +28,7 @@ export async function POST(request) {
 
     // Create new category if it doesn't exist
     if (!category && categoryChosen) {
-      const newCategory = await prisma.userCurrentPairedDetails.create({
+      const newCategory = await prisma.userAutomaticPairedDetails.create({
         data: {
           category: categoryChosen,
           authorId: userId,
@@ -39,7 +39,7 @@ export async function POST(request) {
 
     // Update existing category
     if (category && categoryChosen) {
-      const updatedCategory = await prisma.userCurrentPairedDetails.update({
+      const updatedCategory = await prisma.userAutomaticPairedDetails.update({
         where: {
           id: category.id,
         },
@@ -77,7 +77,7 @@ export async function GET(request) {
   }
 
   try {
-    const currentChallengersList = await prisma.userCurrentPairedDetails.findMany({
+    const currentChallengersList = await prisma.userAutomaticPairedDetails.findMany({
       where: {
         category,
         authorId: {

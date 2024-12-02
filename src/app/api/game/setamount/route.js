@@ -8,12 +8,10 @@ export async function POST(request) {
   try {
     // Parse the JSON body
     const body = await request.json();
-
-    // Destructure from `params`
-    const { params } = body;
-    const { id: userId, username, amount } = params;
+    const { userId, username, amount } = body;
 
 
+    console.log(userId,username , amount)
     // Validate the required fields
     if (!userId || !username || !amount) {
       return NextResponse.json(
@@ -23,7 +21,7 @@ export async function POST(request) {
     }
 
     // Check if the user is already paired or has participated in a game
-    const userCurrentPairedDetails = await prisma.userCurrentPairedDetails.findFirst({
+    const userAutomaticPairedDetails = await prisma.userAutomaticPairedDetails.findFirst({
       where: {
         authorId: userId,
       },
@@ -32,9 +30,9 @@ export async function POST(request) {
       },
     });
 
-    if (userCurrentPairedDetails?.isPaired === false) {
+    if (userAutomaticPairedDetails?.isPaired === false) {
       // Update the amount if the user is not paired yet
-      await prisma.userCurrentPairedDetails.update({
+      await prisma.userAutomaticPairedDetails.update({
         where: { authorId: userId },
         include: { author: true },
         data: { amount: amount }, // Update the amount
@@ -42,7 +40,7 @@ export async function POST(request) {
     }
 
     // Return the updated user details
-    return NextResponse.json({ data: userCurrentPairedDetails }, { status: 200 });
+    return NextResponse.json({ data: "hello"}, { status: 200 });
 
   } catch (error) {
     console.error("Error processing request:", error);
@@ -55,71 +53,3 @@ export async function POST(request) {
   }
 }
 
-
-
-
-
-
-
-// // export const dynamic = "force-static"; 
-// import { NextResponse, NextRequest } from "next/server";
-// import { PrismaClient } from "@prisma/client";
-
-// const prisma = new PrismaClient();
-
-// export async function POST(request) {
-//   try {
-//     // Parse the JSON body
-//     const body = await request.json();
-
-//     // Destructure from `params`
-//     const { params } = body;
-//     const { id: userId, username, amount } = params;
-
-//     // Validate the required fields
-//     if (!userId || !username || amount === undefined) {
-//       return NextResponse.json(
-//         { error: "Missing required fields" },
-//         { status: 400 }
-//       );
-//     }
-
-//     // Ensure amount is a valid number
-//     if (typeof amount !== 'number' || amount <= 0) {
-//       return NextResponse.json(
-//         { error: "Invalid amount provided" },
-//         { status: 400 }
-//       );
-//     }
-
-//     // Check if the user is already paired or has participated in a game
-//     const userCurrentPairedDetails = await prisma.userCurrentPairedDetails.findFirst({
-//       where: {
-//         authorId: userId,
-//       },
-//       include: {
-//         author: true,
-//       },
-//     });
-
-//     if (userCurrentPairedDetails?.isPaired === false) {
-//       // Update the amount if the user is not paired yet
-//       await prisma.userCurrentPairedDetails.update({
-//         where: { authorId: userId },
-//         data: { amount: amount }, // Update the amount
-//       });
-//     }
-
-//     // Return the updated user details
-//     return NextResponse.json({ data: userCurrentPairedDetails }, { status: 200 });
-
-//   } catch (error) {
-//     console.error("Error processing request:", error);
-//     return NextResponse.json(
-//       { error: "An error occurred while processing the request" },
-//       { status: 500 }
-//     );
-//   } finally {
-//     await prisma.$disconnect(); // Ensure to disconnect the database
-//   }
-// }

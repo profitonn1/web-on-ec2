@@ -25,7 +25,7 @@ model User {
   lastActivity       DateTime     @default(now())
   userfulldetails             UserFullDetails[]
   userEachMatchdetails            UserEachMatchDetails[]
-  usercurrentPairedDetails           UserCurrentPairedDetails[] 
+  usercurrentPairedDetails           UserAutomaticPairedDetails[] 
   challengeGameRangeDetails       ChallengeGameRangeDetails[]  @relation("Challenger")
   PlayerTradingStyleDetails       PlayerTradingStyleDetails[]
   UserAllTrades                           UserAllTrades[]
@@ -79,10 +79,10 @@ model UserEachMatchDetails{
  
 }
 
-model UserCurrentPairedDetails{
+model UserAutomaticPairedDetails{
   id                 String       @unique @id @default(uuid())
   author             User         @relation(fields:[authorId] , references: [id])
-  authorId           String       
+  authorId           String       @unique
   isPaired           Boolean      @default(false)
   opponentId         String?
   amount             String?
@@ -132,6 +132,7 @@ model UserAllTrades {
   id                              Int            @unique @id @default(autoincrement())  // Change to Int and use autoincrement
   author                          User           @relation(fields:[authorId] , references: [id])
   authorId                        String  
+  pending                         Boolean        @default(false)
   buyOrSell                       String    
   symbol                          String   
   openingprice                    Float

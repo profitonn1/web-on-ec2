@@ -191,7 +191,7 @@ const TradingViewChart = () => {
         loadTradingViewScript().then(() => {
             const widget = new window.TradingView.widget({
                 symbol: 'BINANCE:BTCUSDT',
-                width: 960,
+                width: 1100,
                 interval: '1', // default interval
                 container: chartContainerRef.current,
                 datafeed: new Datafeed(),

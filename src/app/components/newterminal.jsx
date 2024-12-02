@@ -30,6 +30,7 @@ export default function Terminal() {
   const [closingTradeId , setClosingTradeId]  = useState(0);
   const [stopLossValue, setStopLossValue] = useState(2);
   const [takeProfitValue, setTakeProfitValue] = useState(2);
+  const [pendingValue, setPendingValue] = useState("");
   const [units, setUnits] = useState(0.01); 
   const [inputValue, setInputValue] = useState(units.toFixed(3)); 
   const [opponentBalance, setOpponentBalance] = useState(null);
@@ -38,7 +39,19 @@ export default function Terminal() {
   const [takeProfitActive, setTakeProfitActive] = useState(false);
   const [stopLossActive, setStopLossActive] = useState(false);
 
-  const handlePendingToggle = () => setPendingActive(!pendingActive);
+  const handlePendingToggle = () => {
+    if(symbolPrice !==0){
+      if(pendingActive===false && selectButton===null){
+        setPendingActive(!pendingActive);
+        setSelectButton("buy")
+      }else{
+        setPendingActive(!pendingActive);
+      }
+      if(pendingActive===true){
+        setPendingActive(!pendingActive)
+      }
+    }
+  };
   const handleTakeProfitToggle = () => setTakeProfitActive(!takeProfitActive);
   const handleStopLossToggle = () => setStopLossActive(!stopLossActive);
 
@@ -50,14 +63,20 @@ export default function Terminal() {
     }
   }, [latestTradeData]); // Update whenever latestTradeData changes
  
-//  // This effect will only set stopLossValue when stopLossActive transitions from false to true
-//  useEffect(() => {
-//   if (stopLossActive && selectButton ==="buy") {
-//     setStopLossValue(symbolPrice - 12);
-//   }else{
-//     setStopLossValue(symbolPrice + 12);
-//   }
-// }, [stopLossActive,selectButton]);
+ // This effect will only set stopLossValue when stopLossActive transitions from false to true
+ useEffect(() => {    
+  
+  if(symbolPrice===0 && pendingActive ){
+    setPendingValue("")
+  }
+  if (pendingActive && selectButton ==="sell" && symbolPrice!==0) {
+    setPendingValue(symbolPrice - 12);
+  }
+  
+  if (pendingActive && selectButton ==="buy" && symbolPrice!==0){
+    setPendingValue(symbolPrice + 12);
+  }
+}, [pendingActive , selectButton ]);
 
 // useEffect(() => {
 //   if (takeProfitActive && selectButton ==="buy") {
@@ -107,6 +126,18 @@ export default function Terminal() {
     const newValue = parseFloat(parseFloat(takeProfitValue) - 1).toFixed(1);
     if (newValue >= 0) {
       setTakeProfitValue(newValue);
+    }
+  };
+  const increasePendingValue = () => {
+    const newValue = parseFloat(parseFloat(pendingValue) + 1).toFixed(1);
+    setPendingValue(newValue);
+  };
+  
+  // Decrease function with a check for non-negative values
+  const decreasePendingValue = () => {
+    const newValue = parseFloat(parseFloat(pendingValue) - 1).toFixed(1);
+    if (newValue >= 0) {
+      setPendingValue(newValue);
     }
   };
   
@@ -181,13 +212,14 @@ export default function Terminal() {
           symbol,
           openingTime: new Date(),
         };
-    
+  
         // Add stopLossValue to params if stopLossActive is true and selectButton is changed
         if (stopLossActive && selectButton) {
           params.stopLossValue = stopLossValue;
         }
     
         // Add takeProfitValue to params if takeProfitActive is true and selectButton is changed
+      
         if (takeProfitActive && selectButton) {
           params.takeProfitValue = takeProfitValue;
         }
@@ -198,6 +230,8 @@ export default function Terminal() {
         if (placeResponse.status === 201) {
           setisTradeActive(!isTradeActive);
           handleButtonClick(1)
+          setTakeProfitActive(false);
+          setStopLossActive(false)
         }
       } catch (error) {
         console.error("Error placing trade:", error);
@@ -243,21 +277,25 @@ export default function Terminal() {
   
 // Monitor open trades and close if symbol price reaches stopLossValue or takeProfitValue
 
-// useEffect(() => {
-//   openTrades.forEach((trade) => {
-//     const profitData = allProfit.find((profit) => profit.id === trade.id);
-//     const profitOrLoss = profitData ? profitData.profit.toFixed(3) : "0.00";
-//     // Close trade if the symbolPrice reaches stopLossValue
-//     if (profitOrLoss <= -(trade.stopLossValue)) {
-//       closeTradeFunc(trade.id, profitOrLoss);
-//     }
+useEffect(() => {
+  openTrades.forEach((trade) => {
+    const profitData = allProfit.find((profit) => profit.id === trade.id);
     
-//     // Close trade if the symbolPrice reaches takeProfitValue
-//     if (profitOrLoss >= takeProfitValue) {
-//       closeTradeFunc(trade.id, profitOrLoss);
-//     }
-//   });
-// }, [symbolPrice, openTrades]); 
+    // Parse profitOrLoss as a number for accurate comparison
+    const profitOrLoss = profitData ? parseFloat(profitData.profit.toFixed(3)) : 0;
+
+    // Close trade if the symbolPrice reaches stopLossValue
+    if (trade.stopLossValue && profitOrLoss <= -(trade.stopLossValue)) {
+      closeTradeFunc(trade.id, profitOrLoss);
+    }
+
+    // Close trade if the symbolPrice reaches takeProfitValue
+    if (trade.takeProfitValue && profitOrLoss >= trade.takeProfitValue) {
+      closeTradeFunc(trade.id, profitOrLoss);
+    }
+  });
+}, [symbolPrice, openTrades, allProfit]); 
+
 
 
 const closeTradeFunc = async (tradeId, profitOrLoss) => {
@@ -552,29 +590,29 @@ useEffect(() => {
   {/* Trading View Component */}
   <div
     id="chart"
-    className="h-[80vh] w-[100%] overflow-hidden bg-zinc-950 lg:text-8xl text-white flex items-center justify-center"
+    className="terminal h-[80vh] w-[100%] overflow-hidden bg-zinc-950 lg:text-8xl text-white flex items-center justify-center"
   >
     <TradingViewChart />
   </div>
 
   {/* Buttons and Table Section */}
   <div className="h-[20vh] w-[100%] bg-zinc-950 text-white border-t-4 border-slate-600 flex flex-col">
-    <div className="flex text-base font-thin text-slate-500 justify-around h-[30%] w-[40%]">
+    <div className="flex text-base font-thin text-slate-500 justify-around h-[30%] w-[40%] ">
       <button
         onClick={() => handleButtonClick(1)}
-        className={`w-[120px] ${activeButton === 1 ? "bg-slate-800 text-white" : "bg-slate-900"}`}
+        className={`w-[120px] ${activeButton === 1 ? "bg-slate-800 text-white" : "bg-slate-900"} hover:bg-slate-800`}
       >
         Open ({openTrades.length})
       </button>
       <button
         onClick={() => handleButtonClick(2)}
-        className={`w-[120px] ${activeButton === 2 ? "bg-slate-800 text-white" : "bg-slate-900"}`}
+        className={`w-[120px] ${activeButton === 2 ? "bg-slate-800 text-white" : "bg-slate-900"} hover:bg-slate-800`}
       >
         Pending ({pendingTrades.length})
       </button>
       <button
         onClick={() => handleButtonClick(3)}
-        className={`w-[120px] ${activeButton === 3 ? "bg-slate-800 text-white" : "bg-slate-900"}`}
+        className={`w-[120px] ${activeButton === 3 ? "bg-slate-800 text-white" : "bg-slate-900"} hover:bg-slate-800`}
       >
         Closed ({closedTrades.length})
       </button>
@@ -671,14 +709,14 @@ useEffect(() => {
                         {formattedTime}
                       </div>
                       {row.takeProfitValue === null ? (
-                        <div className="w-1/12 min-w-[100px] ml-10 p-2">- - - -</div>
+                        <div className="w-1/12 min-w-[100px] p-2 text-center">- - - -</div>
                       ) : (
-                        <div className="w-1/12 min-w-[100px] p-2 ml-10">{row.takeProfitValue}</div>
+                        <div className="w-1/12 min-w-[100px] p-2 text-center ">{row.takeProfitValue}</div>
                       )}
                       {row.stopLossValue === null ? (
-                        <div className="w-1/12 min-w-[100px] p-2">- - - -</div>
+                        <div className="w-1/12 min-w-[100px] p-2 text-center">- - - -</div>
                       ) : (
-                        <div className="w-1/12 min-w-[100px] p-2">{row.stopLossValue}</div>
+                        <div className="w-1/12 min-w-[100px] p-2 text-center">{row.stopLossValue}</div>
                       )}
                     </div>
                   );
@@ -692,10 +730,10 @@ useEffect(() => {
        {
         pendingTrades.length === 0 && activeButton === 2 ? (
           <div className="text-center text-slate-600 text-lg p-3">No Pending Trades</div>
-        ) : closedTrades.length > 0 && activeButton === 2 ? (
+        ) : pendingTrades.length > 0 && activeButton === 2 ? (
           <>
             <div>
-              {closedTrades.map}
+              {pendingTrades.map}
             </div>
           </>
         ) : null
@@ -733,14 +771,14 @@ useEffect(() => {
                 {closedformattedTime}
               </div>
               {row.takeProfitValue === null ? (
-                <div className="w-1/12 min-w-[100px] ml-10 -mr-10 p-2">- - - -</div>
+                <div className="w-1/12 min-w-[100px] p-2 text-center">- - - -</div>
               ) : (
-                <div className="w-1/12 min-w-[100px] p-2">{row.takeProfitValue}</div>
+                <div className="w-1/12 min-w-[100px] p-2 text-center">{row.takeProfitValue}</div>
               )}
               {row.stopLossValue === null ? (
-                <div className="w-1/12 min-w-[100px] p-2">- - - -</div>
+                <div className="w-1/12 min-w-[100px] p-2 text-center">- - - -</div>
               ) : (
-                <div className="w-1/12 min-w-[100px] p-2">{row.stopLossValue}</div>
+                <div className="w-1/12 min-w-[100px] p-2 text-center">{row.stopLossValue}</div>
               )}
             </div>
           );
@@ -811,7 +849,7 @@ useEffect(() => {
     </div>
 
 
-          <div className="pending flex flex-col items-center w-[90%] h-auto mt-4">
+          <div className="pending flex flex-col items-center w-[90%] h-auto mt-1">
             <div className="flex items-center w-full h-[50px]">
               <ToogleButton
                 onToggle={handlePendingToggle}
@@ -824,24 +862,44 @@ useEffect(() => {
                 </svg>
               </span>
             </div>
-            {pendingActive && (
-              <div className="dropdown-content bg-gray-800 text-white rounded w-full">
-                <div className="flex border-2 border-white w-[100%] h-[36px]">
+            {pendingActive &&  (
+              <div className="dropdown-content  bg-zinc-950 text-white rounded w-full -mb-4 -mt-1">
+                <div className="flex border-2 border-slate-600 rounded w-[100%] h-[32px]">
                   <div className="w-[60%] h-[100%] text-sm flex items-center justify-between">
-                    <li className="ml-1 list-none">1200</li>
-                    <span className="mr-1">Limit</span>
+                  <input
+                className="ml-1 bg-zinc-950  w-20 border-none outline-none"
+                type="number"
+                inputMode="decimal"
+                placeholder={`${pendingValue}`}
+                value={pendingValue}
+                onChange={(e) => {
+                  const newValue = Number(e.target.value);
+                  if (newValue >= 0) {
+                    setPendingValue(newValue);
+                  }
+                }}
+              
+              />
+                    <span className="mr-1">USD</span>
                   </div>
-                  <div className="w-[20%] h-[100%] border-l-2 border-white text-xl flex items-center justify-center">
-                    -
-                  </div>
-                  <div className="w-[20%] h-[100%] border-l-2 border-white text-xl flex items-center justify-center">
-                    +
-                  </div>
+                  <button
+              onClick={decreasePendingValue}
+              className="w-[20%] h-[100%] border-l-2 border-slate-600 text-xl flex items-center justify-center hover:bg-gray-800"
+            >
+              -
+            </button>
+            <button
+              onClick={increasePendingValue}
+              className="w-[20%] h-[100%] border-l-2 border-slate-600 text-xl flex items-center justify-center hover:bg-gray-800"
+            >
+              +
+            </button>
                 </div>
               </div>
             )}
           </div>
-          <div className="Stop Loss flex flex-col items-center w-[90%] h-auto mt-4">
+          <div className="Take Profit flex flex-col items-center w-[90%] h-auto mt-2">
+
       <div className="flex items-center w-full h-[50px]">
         <ToogleButton
           onToggle={handleTakeProfitToggle}
@@ -853,11 +911,11 @@ useEffect(() => {
       </div>
 
       {takeProfitActive && (
-        <div className="dropdown-content bg-gray-800 text-white rounded w-full">
-          <div className="flex border-2 border-white w-[100%] h-[36px]">
+        <div className="dropdown-content bg-zinc-950  text-white rounded w-full -mb-4 -mt-1">
+          <div className="flex border-2 border-slate-600  rounded w-[100%] h-[32px]">
             <div className="w-[60%] h-[100%] text-sm flex items-center justify-between">
               <input
-                className="ml-1 bg-gray-800 w-20 border-none outline-none"
+                className="ml-1 bg-zinc-950  w-20 border-none outline-none"
                 type="number"
                 inputMode="decimal"
                 placeholder={`2`}
@@ -874,13 +932,13 @@ useEffect(() => {
             </div>
             <button
               onClick={decreasetakeProfit}
-              className="w-[20%] h-[100%] border-l-2 border-white text-xl flex items-center justify-center"
+              className="w-[20%] h-[100%] border-l-2 border-slate-600 text-xl flex items-center justify-center hover:bg-gray-800"
             >
               -
             </button>
             <button
               onClick={increasetakeProfit}
-              className="w-[20%] h-[100%] border-l-2 border-white text-xl flex items-center justify-center"
+              className="w-[20%] h-[100%] border-l-2 border-slate-600 text-xl flex items-center justify-center hover:bg-gray-800"
             >
               +
             </button>
@@ -889,7 +947,7 @@ useEffect(() => {
       )}
     </div>
 
-          <div className="Stop Loss flex flex-col items-center w-[90%] h-auto mt-4">
+          <div className="Stop Loss flex flex-col items-center w-[90%]  h-auto mt-2">
       <div className="flex items-center w-full h-[50px]">
         <ToogleButton
           onToggle={handleStopLossToggle}
@@ -901,35 +959,36 @@ useEffect(() => {
       </div>
 
       {stopLossActive && (
-        <div className="dropdown-content bg-gray-800 text-white rounded w-full">
-          <div className="flex border-2 border-white w-[100%] h-[36px]">
+        <div className="dropdown-content bg-zinc-950 text-white   w-full -mb-4 -mt-1">
+          <div className="flex border-2 rounded border-slate-600 w-[100%] h-[32px]">
             <div className="w-[60%] h-[100%] text-sm flex items-center justify-between">
-              <input
-                className="ml-1 bg-gray-800 w-20 border-none outline-none"
-                type="number"
-                inputMode="decimal"
-                placeholder={`2`}
-                value={stopLossValue}
-                onChange={(e) => {
-                  const newValue = Number(e.target.value);
-                  if (newValue >= 0) {
-                    setStopLossValue(newValue);
-                  }
-                }}
-              
-              />
+            <input
+            style={{ appearance: 'none' }}
+            className="ml-1 bg-zinc-950 w-20 border-none outline-none"
+            type="number"
+            inputMode="decimal"
+            placeholder="2"
+            value={stopLossValue}
+            onChange={(e) => {
+              const newValue = Number(e.target.value);
+              if (newValue >= 0) {
+                setStopLossValue(newValue);
+              }
+            }}
+          />
+
 
               <span className="mr-1">USD</span>
             </div>
             <button
               onClick={decreaseStopLoss}
-              className="w-[20%] h-[100%] border-l-2 border-white text-xl flex items-center justify-center"
+              className="w-[20%] h-[100%] border-l-2 border-slate-600 text-xl flex items-center justify-center hover:bg-zinc-800 "
             >
               -
             </button>
             <button
               onClick={increaseStopLoss}
-              className="w-[20%] h-[100%] border-l-2 border-white text-xl flex items-center justify-center"
+              className="w-[20%] h-[100%] border-l-2 border-slate-600 text-xl flex items-center justify-center hover:bg-zinc-800"
             >
               +
             </button>
@@ -941,7 +1000,7 @@ useEffect(() => {
 
           <button
     className={`flex items-center justify-center mt-8 w-[90%] rounded h-[60px] text-slate-900 
-        ${units === 0 || selectButton === null ? 'bg-slate-500' : selectButton === 'sell' ? 'bg-red-500 text-white' : selectButton === 'buy' ? 'bg-blue-600 text-white' : 'bg-slate-500'}`}
+        ${units === 0 || selectButton === null ? 'bg-slate-500 cursor-not-allowed' : selectButton === 'sell' ? 'bg-red-500 text-white' : selectButton === 'buy' ? 'bg-blue-600 text-white' : 'bg-slate-500'}`}
     disabled={units === 0 || selectButton === null} // Disable button if units are 0 or no active button
     onClick={placeTradeFunction}
 >

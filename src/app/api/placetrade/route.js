@@ -22,10 +22,11 @@ export async function POST(request) {
             takeProfitValue, 
             stopLossActive, 
             takeProfitActive, 
-            selectButton 
+            selectButton,
+            pending,
         } = params;
 
-        console.log(userId, username, openingprice, units, margin, buyOrSell, symbol, openingTime, stopLossValue, takeProfitValue, stopLossActive, takeProfitActive, selectButton);
+        console.log(userId , pending , username, openingprice, units, margin, buyOrSell, symbol, openingTime, stopLossValue, takeProfitValue, stopLossActive, takeProfitActive, selectButton);
 
         // Check for missing essential parameters
         if (!userId || !username || !openingprice || !buyOrSell || !symbol) {
@@ -59,6 +60,9 @@ export async function POST(request) {
             orderData.takeProfitValue = takeProfitValue;
         }
 
+        if(pending){
+          orderData.pending = pending;
+        }
         // Create the trade entry in the database
         const placeOrder = await prisma.userAllTrades.create({
             data: orderData,
@@ -105,7 +109,7 @@ export async function GET(request) {
     const username = searchParams.get('username');
 
     console.log(userId, username);
-    
+
     // Check if required parameters are present
     if (!userId || !username) {
       console.error("Missing Params");

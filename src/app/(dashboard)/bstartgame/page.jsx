@@ -23,6 +23,7 @@ export default function Bstartgame() {
   const [noofChallengesSent, setNoofChallengesSent] = useState("0");
   const [showMessageBy, setShowMessageBy] = useState(false);
   const [autoPopUp, setAutoPopUp] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   const [showMessageTo, setShowMessageTo] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -216,44 +217,70 @@ export default function Bstartgame() {
     try {
       console.log("Selected Item:", selectedItem);
       console.log("User Balance:", userDetails?.balance);
-
+  
       const selectedAmount = parseInt(selectedItem);
       const balance = parseInt(userDetails?.balance);
       const newBalance = balance - selectedAmount;
-
-      if (!isNaN(balance)) {
-        if (!selectedAmount) {
-          setShowWarning(true);
-          alert("Select a price to enter");
-        } else if (balance < selectedAmount) {
-          alert("Insufficient balance");
-        } else {
-          const userDetailsCookie = getCookieValue("userDetails");
-          if (userDetailsCookie) {
-            const decodedUserDetails = decodeURIComponent(userDetailsCookie);
-            const parsedUserDetails = JSON.parse(decodedUserDetails);
-            console.log(parsedUserDetails.username);
-            const response = await fetch("/api/updateBalanceAutoPair", {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                id: parsedUserDetails.id, // Pass the correct ID
-                newBalance, // Include the calculated new balance
-              }),
-            });
-            console.log(response.status);
-            router.push("/autopairing");
-          }
-        }
-      } else {
+  
+      if (isNaN(balance)) {
         alert("Unable to retrieve balance.");
+        return;
       }
+  
+      if (!selectedAmount) {
+        setShowWarning(true);
+        alert("Select a price to enter");
+        return;
+      }
+  
+      if (balance < selectedAmount) {
+        setShowAlert(true);
+        setTimeout(() => setShowAlert(false), 2000);
+        return;
+      }
+  
+      const userDetailsCookie = getCookieValue("userDetails");
+      if (!userDetailsCookie) {
+        alert("User details not found.");
+        return;
+      }
+  
+      const decodedUserDetails = decodeURIComponent(userDetailsCookie);
+      const parsedUserDetails = JSON.parse(decodedUserDetails);
+      console.log("Username:", parsedUserDetails.username);
+  
+      // Update balance in the database
+      const response = await fetch("/api/updateBalanceAutoPair", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: parsedUserDetails.id,
+          newBalance,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update balance");
+      }
+  
+      // Set the amount in the database
+      await axios.post("/api/game/setamount", {
+        userId: parsedUserDetails.id,
+        username: parsedUserDetails.username,
+        amount: String(selectedAmount),
+      });
+  
+  
+      router.push(`/autopairing?amount=${encodeURIComponent(selectedAmount)}`);
+
+
     } catch (error) {
-      console.log("Error in autoAmountSelect:", error);
+      console.error("Error in autoAmountSelect:", error);
     }
   };
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -358,7 +385,10 @@ export default function Bstartgame() {
                                       : "bg-blue-600"
                                   }`}
                                   onClick={() =>
+                                  {
                                     handleItemClick(item.id, item.value)
+                                    selectedItem == null
+                                  }
                                   }
                                 >
                                   ₹{item.value}
@@ -411,6 +441,11 @@ export default function Bstartgame() {
                             border-radius: 12px;
                           }
                         `}</style>
+                      </div>
+                    )}
+                    {showAlert && (
+                      <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 font-mono p-4 text-xl  mb-4 rounded-md z-50 text-white text-center border-2 border-white bg-black">
+                        Insufficient Balance
                       </div>
                     )}
 

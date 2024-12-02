@@ -40,9 +40,19 @@ input:checked ~ span:last-child {
 }
 
 
-
+/* terminal input box */
 
 /* input box in terminal */
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none; /* Removes arrows for WebKit browsers */
+  margin: 0; /* Removes extra margin */
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; /* Removes arrows for Firefox */
+  appearance: none; /* General appearance property */
+}
 
 
 /* Hides the spinner controls in the input */
@@ -53,11 +63,7 @@ input:checked ~ span:last-child {
   margin: 0;
 }
 
-.no-spinner[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
-  appearance: textfield; /* Standard property */
-  border: none; /* Removes the border */
-}
+
 
 
 
@@ -117,46 +123,78 @@ input:checked ~ span:last-child {
 /* Define the keyframes for the glow effects */
 @keyframes glow1 {
   0%, 100% {
-    box-shadow: 0 0 90px 10px rgba(235, 209, 9, 0.3);
+    box-shadow: 
+      0 -10px 90px 10px rgba(235, 209, 9, 0.3),  /* Top */
+      -10px 0 90px 10px rgba(235, 209, 9, 0.3), /* Left */
+      0 10px 90px 10px rgba(235, 209, 9, 0.3);  /* Bottom */
   }
   25% {
-    box-shadow: 0 0 90px 10px rgba(213, 223, 66, 0.2);
+    box-shadow: 
+      0 -10px 90px 10px rgba(213, 223, 66, 0.2),
+      -10px 0 90px 10px rgba(213, 223, 66, 0.2),
+      0 10px 90px 10px rgba(213, 223, 66, 0.2);
   }
   50% {
-    box-shadow: 0 0 90px 10px rgba(225, 238, 120, 0.1);
+    box-shadow: 
+      0 -10px 90px 10px rgba(225, 238, 120, 0.1),
+      -10px 0 90px 10px rgba(225, 238, 120, 0.1),
+      0 10px 90px 10px rgba(225, 238, 120, 0.1);
   }
   75% {
-    box-shadow: 0 0 90px 10px rgba(220, 232, 6, 0.2);
+    box-shadow: 
+      0 -10px 90px 10px rgba(220, 232, 6, 0.2),
+      -10px 0 90px 10px rgba(220, 232, 6, 0.2),
+      0 10px 90px 10px rgba(220, 232, 6, 0.2);
   }
 }
 
 @keyframes glow2 {
   0%, 100% {
-    box-shadow: 0 0 95px 25px rgb(0, 0, 255, 0.4);
+    box-shadow: 
+      0 -20px 95px 25px rgb(0, 0, 255, 0.4),  /* Top */
+      0 20px 95px 25px rgb(0, 0, 255, 0.4);  /* Bottom */
   }
   25% {
-    box-shadow: 0 0 95px 25px rgb(0, 0, 200, 0.5);
+    box-shadow: 
+      0 -20px 95px 25px rgb(0, 0, 200, 0.5),
+      0 20px 95px 25px rgb(0, 0, 200, 0.5);
   }
   50% {
-    box-shadow: 0 0 95px 25px rgb(0, 0, 170, 0.4);
+    box-shadow: 
+      0 -20px 95px 25px rgb(0, 0, 170, 0.4),
+      0 20px 95px 25px rgb(0, 0, 170, 0.4);
   }
   75% {
-    box-shadow: 0 0 95px 25px rgb(0, 0, 80, 0.3);
+    box-shadow: 
+      0 -20px 95px 25px rgb(0, 0, 80, 0.3),
+      0 20px 95px 25px rgb(0, 0, 80, 0.3);
   }
 }
 
 @keyframes glow3 {
   0%, 100% {
-    box-shadow: 0 0 20px 5px rgba(0, 0, 255, 0.2);  /* Soft blue glow */
+    box-shadow: 
+      0 -5px 20px 5px rgba(0, 0, 255, 0.2),  /* Top */
+      10px 0 20px 5px rgba(0, 0, 255, 0.2),  /* Right */
+      0 5px 20px 5px rgba(0, 0, 255, 0.2);  /* Bottom */
   }
   25% {
-    box-shadow: 0 0 20px 5px rgba(0, 0, 200, 0.3);  /* Slightly darker blue */
+    box-shadow: 
+      0 -5px 20px 5px rgba(0, 0, 200, 0.3),
+      10px 0 20px 5px rgba(0, 0, 200, 0.3),
+      0 5px 20px 5px rgba(0, 0, 200, 0.3);
   }
   50% {
-    box-shadow: 0 0 20px 5px rgba(0, 0, 170, 0.2);  /* A more subtle blue */
+    box-shadow: 
+      0 -5px 20px 5px rgba(0, 0, 170, 0.2),
+      10px 0 20px 5px rgba(0, 0, 170, 0.2),
+      0 5px 20px 5px rgba(0, 0, 170, 0.2);
   }
   75% {
-    box-shadow: 0 0 20px 5px rgba(0, 0, 130, 0.15);  /* Lighter soft blue */
+    box-shadow: 
+      0 -5px 20px 5px rgba(0, 0, 130, 0.15),
+      10px 0 20px 5px rgba(0, 0, 130, 0.15),
+      0 5px 20px 5px rgba(0, 0, 130, 0.15);
   }
 }
 
@@ -313,4 +351,21 @@ input:checked ~ span:last-child {
 /* Apply animation */
 .grow2 {
   animation: growEffect2 1s ease-out forwards; /* Duration: 0.5s, easing: ease-out */
+}
+
+
+/* autopairing page animation */
+/* Loader Animation */
+.loader {
+  width: 60px;
+  aspect-ratio: 4; /* Ensures a 4:1 width-to-height ratio */
+  background: radial-gradient(circle closest-side, white 90%, transparent) 0/calc(100%/3) 100% space;
+  clip-path: inset(0 100% 0 0);
+  animation: l1 1s steps(4) infinite;
+}
+
+@keyframes l1 {
+  to {
+    clip-path: inset(0 -34% 0 0); /* Expands the clip path to reveal the dots progressively */
+  }
 }

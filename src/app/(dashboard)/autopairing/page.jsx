@@ -5,10 +5,13 @@ import { useEffect, useState } from "react";
 import { getCombinedData } from "../../fetchData/fetchuserdata";
 import { useRouter } from "next/navigation";
 import DashAppbar from "../../components/DashAppbar";
+import { useLocation } from 'react-router-dom';
 
 export default function Autopairing() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [, setIsSuccess] = useState(false);
+  const [amount, setAmount] = useState('0');
 
   const [heading, setHeading] = useState("Finding Player");
   const [oppData, setOppData] = useState({
@@ -16,13 +19,21 @@ export default function Autopairing() {
     winrate: "",
     ranking: "",
   });
+  useEffect(() => {
+    const params = window.location.search;
+    const urlParams = new URLSearchParams(params);
+    const paramAmount = urlParams.get('amount');
+    setAmount(paramAmount);
+  }, []); // This will set the amount once on mount
+  
 
   // const [name, setName] = useState<any>(null);
   const [data, setData] = useState(null);
   // const [error, setError] = useState<string | null>(null);
-  const [amount, setAmount] = useState("0");
+
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [showHeading , setShowHeading] = useState("")
   const [currentQuote, setCurrentQuote] = useState(""); // State to store the current quote
 
 
@@ -33,17 +44,17 @@ export default function Autopairing() {
     if (match) return match[2];
     return null;
   }
-
   useEffect(() => {
     const storedDetails = getOpponentDetailsFromCookies();
-
+  
     if (storedDetails) {
       console.log("Setting state with details:", storedDetails); // Debugging line
       setOppData(storedDetails);
     } else {
       console.log("No details found in cookies");
     }
-  }, [oppData]);
+  }, []); // Empty dependency array means this effect runs only once when the component mounts
+  
 
   const cryptoTradingQuotes = [
     "Bitcoin is a technological tour de force. – Bill Gates",
@@ -129,56 +140,61 @@ export default function Autopairing() {
     return () => clearInterval(quoteInterval);
   }, []); // Empty dependency array ensures this effect runs only once when the component mounts
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+
+
+  const getOpponentDetailsFromCookies = () => {
+    const storedDetails = Cookies.get("opponentDetails");
+    return storedDetails ? JSON.parse(storedDetails) : null;
+  };
+
+  const handleSubmit = async () => {
     try {
+      setLoading(true);
       let success = false;
-      while (!success && amount != "0") {
+      while (!success && amount !="0") {
         try {
           const userDetailsCookie = getCookieValue("userDetails");
           // Start the game by posting the amount
           if (userDetailsCookie) {
             const decodedUserDetails = decodeURIComponent(userDetailsCookie);
             const parsedUserDetails = JSON.parse(decodedUserDetails);
-            const postresponse = await axios.post("/api/game/start", {
-              params: {
-                // Wrap the data inside params
-                id: parsedUserDetails.id,
-                username: parsedUserDetails.username,
-                amount: amount, // The amount selected
-              },
+           
+            const postresponse = await axios.post("/api/game/automaticpairing", {
+              userId: parsedUserDetails.id,
+              username: parsedUserDetails.username,
+              amount: amount, // The amount selected
             });
 
-            if (postresponse.status === 200) {
+            if (postresponse.status === 201) {
               success = true;
 
               // Get the response data (opponent details)
-              const opponentDetails = postresponse.data;
+              // const opponentDetails = postresponse.data;
 
-              // Store opponent details in both cookies and state
-              const expiresIn30Minutes = new Date(
-                new Date().getTime() + 30 * 60 * 1000
-              );
+              // // Store opponent details in both cookies and state
+              // const expiresIn30Minutes = new Date(
+              //   new Date().getTime() + 30 * 60 * 1000
+              // );
 
-              // Set the cookie with a 30-minute expiration time
-              Cookies.set("opponentDetails", JSON.stringify(opponentDetails), {
-                expires: expiresIn30Minutes,
-              });
-              setOppData(opponentDetails); // Update the state with the details
+              // // Set the cookie with a 30-minute expiration time
+              // Cookies.set("opponentDetails", JSON.stringify(opponentDetails), {
+              //   expires: expiresIn30Minutes,
+              // });
+              // setOppData(opponentDetails); // Update the state with the details
 
-              // Optionally, start checking for an opponent if needed
+              // // Optionally, start checking for an opponent if needed
               checkForOpponent();
             }
           }
         } catch (error) {
           if (axios.isAxiosError(error) && error.response?.status === 404) {
-            setAlertMessage("Finding Player");
-            setShowAlert(true);
+            setShowHeading("Finding Player");
+            // setShowAlert(true);
             setTimeout(() => {
               setShowAlert(false);
             }, 3000);
             console.log("Opponent not found, retrying...");
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+            await new Promise((resolve) => setTimeout(resolve, 1500)); // Wait for 1 second before retrying
           } else {
             console.error("Unexpected error:", error);
           }
@@ -189,11 +205,7 @@ export default function Autopairing() {
     }
   };
 
-  const getOpponentDetailsFromCookies = () => {
-    const storedDetails = Cookies.get("opponentDetails");
-    return storedDetails ? JSON.parse(storedDetails) : null;
-  };
-
+ 
   const checkForOpponent = async () => {
     try {
       const userDetailsCookie = getCookieValue("userDetails");
@@ -201,44 +213,46 @@ export default function Autopairing() {
       if (userDetailsCookie) {
         const decodedUserDetails = decodeURIComponent(userDetailsCookie);
         const parsedUserDetails = JSON.parse(decodedUserDetails);
-        const oppResponse = await axios.get("/api/game/start", {
+        const oppResponse = await axios.get("/api/game/automaticpairing", {
           params: {
-            // Wrap the data inside params
-            id: parsedUserDetails.id,
+            userId: parsedUserDetails.id,
             username: parsedUserDetails.username,
-            amount: amount, // The amount selected
+            amount: amount,
           },
-        });
+          withCredentials: true
+        });     
 
-        const expiresIn30Minutes = new Date(
-          new Date().getTime() + 30 * 60 * 1000
-        );
-
-        const storeOpponentDetailsInCookies = (details) => {
-          Cookies.set("opponentDetails", JSON.stringify(details), {
-            expires: expiresIn30Minutes,
-          }); // Store for 7 days
-        };
-        if (oppResponse.data) {
-          storeOpponentDetailsInCookies(oppResponse.data);
-          setAlertMessage("User Found");
-          setIsSuccess(true);
-          setShowAlert(true);
-          setTimeout(() => {
-            setShowAlert(false);
-            // router.push('/payment');
-          }, 1500);
-
-          if (oppResponse.status === 404) {
-            setAlertMessage("Finding Player");
+        if(oppResponse.status===201){
+          const expiresIn30Minutes = new Date(
+            new Date().getTime() + 30 * 60 * 1000
+          );
+  
+          const storeOpponentDetailsInCookies = (details) => {
+            Cookies.set("opponentDetails", JSON.stringify(details), {
+              expires: expiresIn30Minutes,
+            }); // Store for 7 days
+          };
+          if (oppResponse.data) {
+            storeOpponentDetailsInCookies(oppResponse.data);
+            setShowHeading("Opponent Found");
+            setIsSuccess(true);
             setShowAlert(true);
             setTimeout(() => {
               setShowAlert(false);
               // router.push('/payment');
             }, 1500);
-          }
-
-          setHeading("Match Confirmed");
+  
+            if (oppResponse.status === 404) {
+              setAlertMessage("Finding Player");
+              setShowAlert(true);
+              setTimeout(() => {
+                setShowAlert(false);
+                // router.push('/payment');
+              }, 1500);
+            }
+  
+            setHeading("Match Confirmed")
+        }
         } else {
           // If no opponent found, keep checking after a delay
           setTimeout(checkForOpponent, 3000); // Retry after 3 seconds
@@ -265,51 +279,34 @@ export default function Autopairing() {
     }
   };
 
-  const setAmountFunction = async (e) => {
-    try {
-      const selectedAmount = e.target.value;
-      setAmount(selectedAmount); // Set the amount
+useEffect(()=>{
 
-      const userDetailsCookie = getCookieValue("userDetails");
-      // Start the game by posting the amount
-      if (userDetailsCookie) {
-        const decodedUserDetails = decodeURIComponent(userDetailsCookie);
-        const parsedUserDetails = JSON.parse(decodedUserDetails);
-        const oppResponse = await axios.post("/api/game/setamount", {
-          params: {
-            // Wrap the data inside params
-            id: parsedUserDetails.id,
-            username: parsedUserDetails.username,
-            amount: selectedAmount, // The amount selected
-          },
-        });
+  // if(oppData.oppname ==="" && oppData.ranking==="" && oppData.winrate===""){
+  //   handleSubmit();
+  // }
+  checkForOpponent();
+},[amount])
 
-        console.log("Response:", oppResponse.data);
-      }
-    } catch (error) {
-      console.error("Error setting amount:", error);
-    }
-  };
+  
+  // const paymentButton = () => {
+  //   const opponentData = Cookies.get("opponentDetails");
+  //   console.log("opponentData:", opponentData); // To check the value in the console
+  //   if (opponentData === undefined) {
+  //     setAlertMessage("Please Select the Amount");
+  //     setShowAlert(true);
+  //     setTimeout(() => {
+  //       setShowAlert(false);
+  //     }, 1500);
+  //   } else {
+  //     setAlertMessage("Redirecting to payment page");
+  //     setShowAlert(true);
 
-  const paymentButton = () => {
-    const opponentData = Cookies.get("opponentDetails");
-    console.log("opponentData:", opponentData); // To check the value in the console
-    if (opponentData === undefined) {
-      setAlertMessage("Please Select the Amount");
-      setShowAlert(true);
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 1500);
-    } else {
-      setAlertMessage("Redirecting to payment page");
-      setShowAlert(true);
-
-      setTimeout(() => {
-        setShowAlert(false);
-        router.push("/payments");
-      }, 1500);
-    }
-  };
+  //     setTimeout(() => {
+  //       setShowAlert(false);
+  //       router.push("/payments");
+  //     }, 1500);
+  //   }
+  // };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -332,9 +329,9 @@ export default function Autopairing() {
       <div className="fixed">
         {/* Alert */}
         {showAlert && (
-          <div className="relative top-0  left-1/2  right-1/2 transform -translate-x-1/2 w-full max-w-lg">
+          <div className="relative top-5  left-1/2  right-1/2 transform -translate-x-1/2 w-full max-w-lg">
             <div
-              className="p-4 mb-4 text-lg bg-blue-700 text-green-200 rounded-lg border-2 border-slate-200 shadow-3xl "
+              className="p-4 mb-4 text-xl bg-black text-green-200 rounded-lg border-2 border-slate-200 shadow-3xl "
               role="alert"
             >
               {alertMessage}
@@ -344,8 +341,14 @@ export default function Autopairing() {
       </div>
         <DashAppbar/>
       <div>
-        <div className="lg:text-8xl md:text-7xl font-sans text-5xl text-center font-semibold p-6 mt-12 lg:-mb-4">
-          Waiting for the opponent...
+        <div className="lg:text-9xl md:text-7xl font-sans text-5xl text-center font-semibold p-6 mt-12 lg:-mb-4">
+        {loading && (
+          <div className="flex justify-center items-center space-x-2">
+            <div>{showHeading}</div>
+            <div className="loader mt-20 "></div>
+          </div>
+        )}
+
         </div>
         <div className="flex gap-x-16 mt-12 items-center justify-center">
           <div className="flex items-center border-2 p-8 rounded-lg w-96">
@@ -356,7 +359,7 @@ export default function Autopairing() {
               </span>
               <br />
               <span className="text-lg text-white">
-                Username : {userDetails?.username}
+                Username : {userDetails?.username} 
               </span>
               <br />
               <span className="text-lg text-white">
@@ -380,7 +383,7 @@ export default function Autopairing() {
               </span>
               <br />
               <span className="text-lg text-white">
-                Username :{oppData.oppname}
+                Username :{oppData?.username}
               </span>
               <br />
               <span className="text-lg text-white">
