@@ -21,24 +21,21 @@ export default function Home() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          if (entry.target === cryptoRef.current) {
-            setIsCryptoInView(true); // Apply the animation when crypto image enters the viewport
-          } else if (entry.target === terminalRef.current) {
-            setIsTerminalInView(true); // Apply the animation when terminal image enters the viewport
-          }
+        if (entry.target === cryptoRef.current) {
+          setIsCryptoInView(entry.isIntersecting); // Update state based on visibility
+        } else if (entry.target === terminalRef.current) {
+          setIsTerminalInView(entry.isIntersecting);
         }
       },
-      { threshold: 0.4 } // Trigger when at least 50% of the image is in view
+      { threshold: 0.4 } // Trigger when at least 40% of the element is visible
     );
 
-    // Observe both images
     if (cryptoRef.current) observer.observe(cryptoRef.current);
     if (terminalRef.current) observer.observe(terminalRef.current);
 
     return () => {
       if (cryptoRef.current) observer.unobserve(cryptoRef.current);
-      if (terminalRef.current) observer.unobserve(terminalRef.current); // Clean up observer
+      if (terminalRef.current) observer.unobserve(terminalRef.current);
     };
   }, []);
   // Scroll fade-in effect using Intersection Observer
@@ -90,7 +87,7 @@ export default function Home() {
               onClick={() => {
                 router.push("/signup");
               }}
-              className="bg-indigo-700 hover:bg-indigo-500 w-80 transition duration-300 ease-in-out transform hover:scale-105 rounded-lg font-semibold text-white p-4 mt-5 relative mx-8 text-2xl"
+              className="bg-indigo-700 hover:bg-indigo-600 w-80 transition duration-300 ease-in-out transform hover:scale-105 rounded-lg font-semibold text-white p-4 mt-5 relative mx-8 text-2xl"
             >
               Start Trading Now
             </button>

@@ -49,13 +49,13 @@ export default function Appbar() {
         <div className="flex justify-between lg:hidden">
           <a
             href="/signin"
-            className="flex flex-col font-medium justify-center px-7 py-2 bg-blue-500 rounded-3xl text-white w-30 text-center text-base"
+            className="flex flex-col font-medium justify-center px-7 py-2 bg-indigo-700 hover:bg-indigo-600 rounded-3xl text-white w-30 text-center text-base transition duration-300 ease-in-out transform hover:scale-105"
           >
             Sign In
           </a>
           <button
             id="dropdownDefaultButton"
-            className="text-blue-900 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
+            className="text-blue-900 font-medium  rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
             onClick={toggleDropdown}
           >
             <svg
@@ -74,169 +74,108 @@ export default function Appbar() {
             </svg>
           </button>
           {dropdownOpen && (
-            <div
-              id="dropdown"
-              className="absolute right-0 mt-14 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700"
-            >
-              <ul
-                className="py-2 bg-white rounded-lg text-sm text-slate-700 shadow-2xl"
-                aria-labelledby="dropdownDefaultButton"
-              >
-                <li>
-                  <button
-                    onClick={() => {
-                      router.push("/");
-                    }}
-                    className="block px-4 py-2 hover:text-white text-start w-full"
-                  >
-                    Home
-                  </button>
-                </li>
-
-                <li>
-                  <button
-                    onClick={() => {
-                      router.push("/about");
-                    }}
-                    className="block px-4 py-2 hover:text-white text-start w-full"
-                  >
-                    About
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      router.push("/signup");
-                    }}
-                    className="block px-4 py-2 hover:text-white text-start w-full"
-                  >
-                    Signup
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      router.push("/signin");
-                    }}
-                    className="block px-4 py-2 hover:text-white text-start w-full"
-                  >
-                    Sign In
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
-      </div>
-      {/* Large screen navigation */}
-      <div
-        className={`z-50 p-2 hidden ${
-          isScrolled
-            ? "text-white"
-            : "text-gray-400" // Solid black background when at top
-        } lg:flex lg:justify-evenly lg:w-auto lg:grid-cols-5`}
-      >
+  <div
+    id="dropdown"
+    className="absolute right-0 mt-14 z-10 bg-black divide-y divide-gray-700 rounded-lg shadow-lg w-44 dark:bg-gray-800"
+  >
+    <ul
+      className="py-2 rounded-lg text-sm text-white shadow-2xl"
+      aria-labelledby="dropdownDefaultButton"
+    >
+      <li>
         <button
           onClick={() => {
             router.push("/");
           }}
-          className="cursor-pointer text-xl hover:text-gray-200 hover:underline"
+          className="block px-4 py-2 text-start w-full hover:bg-indigo-600 rounded-md  hover:scale-105 transition-all duration-300"
         >
           Home
         </button>
+      </li>
+
+      <li>
         <button
           onClick={() => {
             router.push("/about");
           }}
-          className="cursor-pointer text-xl hover:text-gray-200 hover:underline"
+          className="block px-4 py-2 text-start w-full hover:bg-indigo-600  rounded-md hover:scale-105 transition-all duration-300"
         >
           About
         </button>
+      </li>
+
+      <li>
         <button
           onClick={() => {
             router.push("/signup");
           }}
-          className="cursor-pointer text-xl hover:text-gray-200 hover:underline"
+          className="block px-4 py-2 text-start w-full hover:bg-indigo-600  rounded-md hover:scale-105 transition-all duration-300"
         >
-          Sign Up
+          Signup
         </button>
+      </li>
+
+      <li>
         <button
           onClick={() => {
             router.push("/signin");
           }}
-          className="cursor-pointer text-xl hover:text-gray-200 hover:underline"
+          className="block px-4 py-2 text-start w-full hover:bg-indigo-600  rounded-md hover:scale-105 transition-all duration-300"
         >
           Sign In
         </button>
-      </div>
-      {/* Dropdown toggle */}
-      <div className="flex justify-end mr-5">
-        <div className="hidden lg:block relative">
-          <button
-            id="dropdownDefaultButton"
-            className="hover:border-2 border-slate-600 text-slate-500 hover:text-gray-400 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center"
-            type="button"
-            onClick={toggleDropdown}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="w-12 h-12 ml-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </button>
-          {dropdownOpen && (
-            <div
-              id="dropdown"
-              className="absolute right-2 mt-1 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700"
-            >
-              <ul
-                className="py-2 bg-white rounded-lg text-sm text-slate-700 shadow-2xl"
-                aria-labelledby="dropdownDefaultButton"
-              >
-                <li>
-                  <button
-                    onClick={() => {
-                      router.push("/");
-                    }}
-                    className="block text-start w-full px-4 py-2 hover:text-white"
-                  >
-                    Home
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      router.push("/about");
-                    }}
-                    className="block text-start w-full px-4 py-2 hover:text-white"
-                  >
-                    About
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      router.push("/signup");
-                    }}
-                    className="block px-4 py-2 w-full text-start hover:text-white"
-                  >
-                    Sign Up
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
+      </li>
+    </ul>
+  </div>
+)}
+
         </div>
       </div>
+      {/* Large screen navigation */}
+      <div
+  className={`z-50 p-2 hidden ${
+    isScrolled ? "text-white" : "text-gray-400"
+  } lg:flex lg:justify-evenly lg:w-auto lg:grid-cols-5`}
+>
+  <button
+    onClick={() => {
+      router.push("/");
+    }}
+    className="cursor-pointer text-xl hover:text-gray-200 transform hover:scale-110 transition duration-300"
+  >
+    Home
+  </button>
+  <button
+    onClick={() => {
+      router.push("/about");
+    }}
+    className="cursor-pointer text-xl hover:text-gray-200 transform hover:scale-110 transition duration-300"
+  >
+    About
+  </button>
+  <button
+    onClick={() => {
+      router.push("/signup");
+    }}
+    className="cursor-pointer text-xl hover:text-gray-200 transform hover:scale-110 transition duration-300"
+  >
+    Sign Up
+  </button>
+  <button
+    onClick={() => {
+      router.push("/signin");
+    }}
+    className="cursor-pointer text-xl hover:text-gray-200 transform hover:scale-110 transition duration-300"
+  >
+    Sign In
+  </button>
+</div>
+
+      {/* Dropdown toggle */}
+      <button className="fixed right-0 top-4 text-center rounded-lg mr-5 bg-indigo-700 text-lg w-32 h-10 text-white  flex flex-col justify-center lg:block transition duration-300 ease-in-out transform hover:scale-105">
+        Start Demo
+      </button>
+
     </div>
   );
 }

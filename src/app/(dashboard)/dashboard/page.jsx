@@ -126,9 +126,23 @@ export default function Dashboard() {
     }
   };
 
-  const redirectToTerminal = () => {
-    router.push("/terminal")
-    setButtonClicked(true);
+  const redirectToTerminal =  async() => {
+    const userDetailsCookie = getCookieValue("userDetails");
+      if (categoryChosen && userDetailsCookie) {
+        const decodedUserDetails = decodeURIComponent(userDetailsCookie);
+        const parsedUserDetails = JSON.parse(decodedUserDetails);
+    const response = await axios.post('/api/changeDemoBalance',{
+        username:parsedUserDetails.username,
+        userId : parsedUserDetails.id,
+    })
+
+    if(response.status===201||response.status===200){
+      router.push("/terminal")
+    }
+  }
+  
+
+    
   }
 
   return (

@@ -24,7 +24,7 @@ const Timer = () => {
 
   // Render the timer and "Time's up!" message when the timer ends
   return (
-    <div className='text-5xl p-2'>
+    <div className='text-4xl p-2'>
       {timeRemaining > 0 ? (
         <h1>
           {minutes}:{seconds < 10 ? '0' : ''}{seconds}

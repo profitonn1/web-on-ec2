@@ -8,9 +8,9 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const { params } = body;
-        const { userId, username, tradeId, profitOrLoss,  } = params;
+        const { userId, username, tradeId, profitOrLoss, closingPrice} = params;
 
-        console.log(userId, username, tradeId, profitOrLoss, );
+        console.log(userId, username, tradeId, profitOrLoss, closingPrice);
 
         // Check for missing parameters
         if (!userId || !username || !tradeId || profitOrLoss === undefined || profitOrLoss === null ) {
@@ -19,7 +19,7 @@ export async function POST(request) {
         }
 
         const profitLoss = parseFloat(profitOrLoss);
-        
+        // var closingPrice = parseFloat(closingPrice);
         // Check if profitOrLoss is a valid number
         if (isNaN(profitLoss)) {
             console.error("Invalid profitOrLoss value");
@@ -32,6 +32,7 @@ export async function POST(request) {
             data: {
                 closingTime: new Date(),
                 profitOrLoss: profitLoss,
+                closingPrice:closingPrice,
             },
         });
 

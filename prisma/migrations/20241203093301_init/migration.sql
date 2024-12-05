@@ -7,6 +7,8 @@ CREATE TABLE `User` (
     `password` VARCHAR(191) NOT NULL,
     `signin` BOOLEAN NOT NULL DEFAULT false,
     `joinedDate` DATETIME(3) NOT NULL,
+    `signInTime` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `lastActivity` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `User_username_key`(`username`),
     UNIQUE INDEX `User_email_key`(`email`),
@@ -72,7 +74,7 @@ CREATE TABLE `UserEachMatchDetails` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `UserCurrentPairedDetails` (
+CREATE TABLE `UserAutomaticPairedDetails` (
     `id` VARCHAR(191) NOT NULL,
     `authorId` VARCHAR(191) NOT NULL,
     `isPaired` BOOLEAN NOT NULL DEFAULT false,
@@ -80,7 +82,8 @@ CREATE TABLE `UserCurrentPairedDetails` (
     `amount` VARCHAR(191) NULL,
     `category` VARCHAR(191) NOT NULL,
 
-    UNIQUE INDEX `UserCurrentPairedDetails_id_key`(`id`),
+    UNIQUE INDEX `UserAutomaticPairedDetails_id_key`(`id`),
+    UNIQUE INDEX `UserAutomaticPairedDetails_authorId_key`(`authorId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -117,15 +120,16 @@ CREATE TABLE `ChallengeResendGameRangeDetails` (
 CREATE TABLE `UserAllTrades` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `authorId` VARCHAR(191) NOT NULL,
+    `pending` BOOLEAN NOT NULL DEFAULT false,
     `buyOrSell` VARCHAR(191) NOT NULL,
     `symbol` VARCHAR(191) NOT NULL,
     `openingprice` DOUBLE NOT NULL,
     `margin` DOUBLE NOT NULL,
+    `leverage` DOUBLE NOT NULL,
     `unitsOrLots` DOUBLE NOT NULL,
     `profitOrLoss` DOUBLE NULL,
     `takeProfitValue` DOUBLE NULL,
     `stopLossValue` DOUBLE NULL,
-    `currentPrice` DOUBLE NULL,
     `closingPrice` DOUBLE NULL,
     `openingTime` DATETIME(3) NULL,
     `closingTime` DATETIME(3) NULL,
@@ -138,7 +142,9 @@ CREATE TABLE `UserAllTrades` (
 CREATE TABLE `PlayerTradingStyleDetails` (
     `id` VARCHAR(191) NOT NULL,
     `indicatorName` JSON NULL,
-    `symbol` VARCHAR(191) NOT NULL,
+    `toolsName` JSON NULL,
+    `timeInterval` JSON NULL,
+    `symbol` JSON NULL,
     `authorId` VARCHAR(191) NOT NULL,
 
     UNIQUE INDEX `PlayerTradingStyleDetails_id_key`(`id`),
@@ -146,19 +152,16 @@ CREATE TABLE `PlayerTradingStyleDetails` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `ChallengeHistory` (
+CREATE TABLE `ChallangeHistory` (
     `id` VARCHAR(191) NOT NULL,
     `player1` VARCHAR(191) NOT NULL,
-    `player2` VARCHAR(191) NULL,
-    `player1Bet` DOUBLE NULL,
-    `player2Bet` DOUBLE NULL,
-    `winner` VARCHAR(191) NULL,
-    `player1DemoBalance` DOUBLE NULL,
-    `player2DemoBlance` DOUBLE NULL,
-    `matchStartedAt` DATETIME(3) NULL,
-    `matchOverAt` DATETIME(3) NULL,
+    `player2` VARCHAR(191) NOT NULL,
+    `player1Bet` DOUBLE NOT NULL,
+    `player2Bet` DOUBLE NOT NULL,
+    `win` VARCHAR(191) NULL,
+    `date` DATETIME(3) NOT NULL,
 
-    UNIQUE INDEX `ChallengeHistory_id_key`(`id`),
+    UNIQUE INDEX `ChallangeHistory_id_key`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -175,6 +178,18 @@ CREATE TABLE `PartialDemoBalance` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `symmbolPrice` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `btcusd` VARCHAR(191) NOT NULL,
+    `ethusd` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `symmbolPrice_id_key`(`id`),
+    UNIQUE INDEX `symmbolPrice_btcusd_key`(`btcusd`),
+    UNIQUE INDEX `symmbolPrice_ethusd_key`(`ethusd`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `UserFullDetails` ADD CONSTRAINT `UserFullDetails_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -182,7 +197,7 @@ ALTER TABLE `UserFullDetails` ADD CONSTRAINT `UserFullDetails_authorId_fkey` FOR
 ALTER TABLE `UserEachMatchDetails` ADD CONSTRAINT `UserEachMatchDetails_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `UserCurrentPairedDetails` ADD CONSTRAINT `UserCurrentPairedDetails_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `UserAutomaticPairedDetails` ADD CONSTRAINT `UserAutomaticPairedDetails_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ChallengeGameRangeDetails` ADD CONSTRAINT `ChallengeGameRangeDetails_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

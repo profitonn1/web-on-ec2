@@ -136,14 +136,15 @@ model UserAllTrades {
   buyOrSell                       String    
   symbol                          String   
   openingprice                    Float
-  margin                          Float      
+  margin                          Float    
+  leverage                        Float  
   unitsOrLots                     Float
   profitOrLoss                    Float?
   takeProfitValue                 Float?
   stopLossValue                   Float?
   closingPrice                    Float?
   openingTime                     DateTime?     
-  closingTime                     DateTime?     
+  closingTime                     DateTime?             
 }
 
 

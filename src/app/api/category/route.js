@@ -5,19 +5,49 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function POST(request) {
-  const body = await request.json(); 
+  const body = await request.json();
   const { categoryChosen, params } = body;
-  const userId = params.id;
-  const username = params.username;
+  const userId = params?.id;
+  const username = params?.username;
 
   if (!userId || !username) {
     return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
   }
 
   try {
-    console.log(categoryChosen);
+    let demoBalance = null;
+    if (categoryChosen === "beginner") {
+      demoBalance = 10000;
+    } else if (categoryChosen === "plus") {
+      demoBalance = 50000;
+    } else if (categoryChosen === "pro") {
+      demoBalance = 100000;
+    }
 
-    const category = await prisma.userAutomaticPairedDetails.findFirst({
+    const demoBalanceRow = await prisma.partialDemoBalance.findFirst({
+      where: {
+        player: username,
+      },
+    });
+
+    if (!demoBalanceRow) {
+      await prisma.partialDemoBalance.create({
+        data: {
+          authorId: userId, 
+          player: username,
+          demoBalance: demoBalance,
+        },
+      });
+    } else {
+      await prisma.partialDemoBalance.update({
+        where: { id: demoBalanceRow.id }, // Use a unique identifier
+        data: {
+          category: categoryChosen,
+        },
+      });
+    }
+
+    let category = await prisma.userAutomaticPairedDetails.findFirst({
       where: {
         authorId: userId,
       },
@@ -26,20 +56,15 @@ export async function POST(request) {
       },
     });
 
-    // Create new category if it doesn't exist
     if (!category && categoryChosen) {
-      const newCategory = await prisma.userAutomaticPairedDetails.create({
+      category = await prisma.userAutomaticPairedDetails.create({
         data: {
           category: categoryChosen,
           authorId: userId,
-        }
+        },
       });
-      return NextResponse.json(newCategory);
-    }
-
-    // Update existing category
-    if (category && categoryChosen) {
-      const updatedCategory = await prisma.userAutomaticPairedDetails.update({
+    } else if (category && categoryChosen) {
+      category = await prisma.userAutomaticPairedDetails.update({
         where: {
           id: category.id,
         },
@@ -50,15 +75,14 @@ export async function POST(request) {
           author: true,
         },
       });
-      return NextResponse.json(updatedCategory);
     }
 
-    return NextResponse.json(category);
+    return NextResponse.json({msg:"category updated"});
   } catch (error) {
-    console.error("Error fetching user details:", error);
-    return NextResponse.json({ error: "Error fetching user details" }, { status: 500 });
+    console.error("Error updating the category :", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   } finally {
-    await prisma.$disconnect(); // Ensure the database connection is closed after the request
+    await prisma.$disconnect();
   }
 }
 
@@ -67,6 +91,7 @@ export async function GET(request) {
   const category = searchParams.get("categoryChosen");
   const userId = searchParams.get('id');
   const username = searchParams.get('username');
+
 
   if (!userId || !username) {
     return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
@@ -77,6 +102,8 @@ export async function GET(request) {
   }
 
   try {
+
+    
     const currentChallengersList = await prisma.userAutomaticPairedDetails.findMany({
       where: {
         category,

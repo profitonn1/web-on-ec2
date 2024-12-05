@@ -1,106 +1,126 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
-// Create a Prisma Client instance
 const prisma = new PrismaClient();
 
 export async function POST(request) {
-    try {
-        const body = await request.json();
-        const { params } = body;
-        const { 
-            id: userId, 
-            username, 
-            units, 
-            openingprice, 
-            margin, 
-            amount, 
-            buyOrSell, 
-            symbol, 
-            openingTime, 
-            stopLossValue, 
-            takeProfitValue, 
-            stopLossActive, 
-            takeProfitActive, 
-            selectButton,
-            pending,
-        } = params;
+  try {
+    const body = await request.json();
+    const { params } = body || {};
 
-        console.log(userId , pending , username, openingprice, units, margin, buyOrSell, symbol, openingTime, stopLossValue, takeProfitValue, stopLossActive, takeProfitActive, selectButton);
-
-        // Check for missing essential parameters
-        if (!userId || !username || !openingprice || !buyOrSell || !symbol) {
-            console.error("Missing Params");
-            return NextResponse.json({ error: "Some parameters are missing" }, { status: 401 });
-        }
-
-        // Round the margin to 4 decimal places
-        const roundedMargin = parseFloat(margin).toFixed(4);
-
-        // Initialize data to be inserted into the database
-        let orderData = {
-            authorId: userId,
-            symbol,
-            openingprice,
-            margin: parseFloat(roundedMargin),
-            unitsOrLots: units,
-            buyOrSell,
-            amount,
-            openingTime,
-        };
-
-        // Conditionally add stopLossValue if stopLossActive is true and selectButton is changed
-        if (stopLossValue) {
-            orderData.stopLossValue = stopLossValue;
-        }
-        
-        
-        // Conditionally add takeProfitValue if takeProfitActive is true and selectButton is changed
-        if (takeProfitValue) {
-            orderData.takeProfitValue = takeProfitValue;
-        }
-
-        if(pending){
-          orderData.pending = pending;
-        }
-        // Create the trade entry in the database
-        const placeOrder = await prisma.userAllTrades.create({
-            data: orderData,
-        });
-
-        const userRecord = await prisma.playerTradingStyleDetails.findFirst({
-          where:{authorId:userId}
-        })
-
-        if(!userRecord){
-          await prisma.playerTradingStyleDetails.create({
-            data:{
-              authorId:userId,
-              symbol:{
-                [symbol]:1
-              }
-            }
-          })
-        }else {
-          // If record exists, parse the Indicators field and update it
-          const updatedsymbol = { ...userRecord.symbol };
-          updatedsymbol[symbol] = (updatedsymbol[symbol] || 0) + 1;
-    
-          await prisma.playerTradingStyleDetails.update({
-            where: { id: userRecord.id },
-            data: { symbol: updatedsymbol },
-          });
-        }
-
-        return NextResponse.json({ msg: "Trade Placed" }, { status: 201 });
-
-    } catch (error) {
-        console.error("Error processing pairing:", error);
-        return NextResponse.json({ error: "Error processing pairing" }, { status: 500 });
-    } finally {
-        await prisma.$disconnect(); // Ensure disconnection in finally block
+    if (!params) {
+      return NextResponse.json({ error: "Missing params object" }, { status: 400 });
     }
+
+    const {
+      id: userId,
+      username,
+      units,
+      openingprice,
+      margin,
+      leverage,
+      amount,
+      buyOrSell,
+      symbol,
+      openingTime,
+      stopLossValue,
+      takeProfitValue,
+      pending,
+      matchingTradeIds,
+    } = params;
+
+    console.log(userId,
+      username,
+      units,
+      openingprice,
+      margin,
+      amount,
+      buyOrSell,
+      symbol,
+      openingTime,
+      stopLossValue,
+      takeProfitValue,
+      pending,
+      matchingTradeIds)
+
+    if (matchingTradeIds && matchingTradeIds.length > 0) {
+      const trades = await prisma.userAllTrades.findMany({
+        where: { id: { in: matchingTradeIds } },
+      });
+
+      if (trades.length > 0) {
+        await prisma.userAllTrades.updateMany({
+          where: { id: { in: matchingTradeIds } },
+          data: { pending: false },
+        });
+        return NextResponse.json({ msg: "Pending Trade Placed" }, { status: 201 });
+      } else {
+        return NextResponse.json({ error: "No matching trade found" }, { status: 404 });
+      }
+    }
+
+    if (!userId || !username || !openingprice || !buyOrSell || !symbol) {
+      return NextResponse.json({ error: "Some essential parameters are missing" }, { status: 400 });
+    }
+
+    const roundedMargin = parseFloat(margin).toFixed(4);
+    let orderData = {
+      authorId: userId,
+      symbol,
+      openingprice,
+      leverage,
+      margin: parseFloat(roundedMargin),
+      unitsOrLots: units,
+      buyOrSell,
+      amount,
+      openingTime,
+    };
+
+    if (stopLossValue) orderData.stopLossValue = stopLossValue;
+    if (takeProfitValue) orderData.takeProfitValue = takeProfitValue;
+    if (pending) orderData.pending = pending;
+
+    const placeOrder = await prisma.userAllTrades.create({ data: orderData });
+
+    const userRecord = await prisma.playerTradingStyleDetails.findFirst({
+      where: { authorId: userId },
+    });
+
+    if (!userRecord) {
+      await prisma.playerTradingStyleDetails.create({
+        data: {
+          authorId: userId,
+          symbol: JSON.stringify({ [symbol]: 1 }),
+        },
+      });
+    } else {
+      // Fix parsing issue
+      let updatedsymbol;
+      try {
+        updatedsymbol = JSON.parse(userRecord.symbol || "{}");
+      } catch (err) {
+        console.error("Invalid JSON in userRecord.symbol. Resetting to empty object.");
+        updatedsymbol = {}; // Fallback to empty object if parsing fails
+      }
+
+      updatedsymbol[symbol] = (updatedsymbol[symbol] || 0) + 1;
+
+      await prisma.playerTradingStyleDetails.update({
+        where: { id: userRecord.id },
+        data: { symbol: JSON.stringify(updatedsymbol) },
+      });
+    }
+
+    return NextResponse.json({ msg: "Trade Placed", trade: placeOrder }, { status: 201 });
+  } catch (error) {
+    console.error("Error processing pairing:", error);
+    return NextResponse.json({ error: "Error processing pairing", details: error.message }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
 }
+
+
 
 export async function GET(request) {
   try {

@@ -13,7 +13,7 @@ const signUpSchema = z.object({
     .max(30, { message: "Username can't be more than 30 characters" }),
   mobile: z
     .string()
-    .min(10, { message: "Mobile number must be at least 10 digits" })
+    .min(10, { message: "Enter a valid mobile number" })
     .refine((val) => validator.isMobilePhone(val, "any"), {
       message: "Invalid mobile phone number",
     }),
@@ -32,7 +32,6 @@ const signUpSchema = z.object({
     .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
       message: "Password must contain at least one special character",
     }),
-
   email: z.string().email({ message: "Invalid email address" }),
 });
 
@@ -168,6 +167,8 @@ export default function SignupBox() {
               onChange={handleInputChange}
               error={errors.password}
             />
+
+
           </div>
 
           <div className="flex items-center justify-between">
@@ -210,6 +211,8 @@ export default function SignupBox() {
     </div>
   );
 }
+
+
 function LabelInput({ Label, placeholder, onChange, type, error, name }) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -237,22 +240,35 @@ function LabelInput({ Label, placeholder, onChange, type, error, name }) {
 
   return (
     <div>
-      <div>
-        <label htmlFor={name} className="block text-sm font-medium text-white">
-          {Label}
-        </label>
+      <label htmlFor={name} className="block text-sm font-medium text-white">
+        {Label}
+      </label>
+      <div className="relative">
         <input
           id={name}
           name={name}
           onChange={onChange}
-          onKeyDown={handleKeyDown} // Add keydown event handler
+          onKeyDown={handleKeyDown}
           type={type === "password" && showPassword ? "text" : type}
-          className="text-black appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="text-black appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           placeholder={placeholder}
           required
         />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {type === "password" && (
+          <button
+            type="button"
+            onClick={togglePasswordVisibility}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-indigo-700"
+          >
+            {showPassword ? (
+              <FaEyeSlash size={20} />
+            ) : (
+              <FaEye size={20} />
+            )}
+          </button>
+        )}
       </div>
+      {error && <p className="text-red-500 text-sm">{error}</p>}
     </div>
   );
 }

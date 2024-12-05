@@ -479,38 +479,38 @@ export default function DashAppbar() {
               </button>
 
               {balanceOpen && (
-                <div
-                  ref={balanceRef}
-                  className="absolute -right-2 h-42 mt-2 w-40 text-center p-2 bg-zinc-950 text-white rounded-lg shadow-lg"
-                >
-                  <div>Your Balance</div>
-                  <div className="flex justify-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      className="pt-1 size-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 8.25H9m6 3H9m3 6-3-3h1.5a3 3 0 1 0 0-6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                      />
-                    </svg>
-                    <p className="text-lg font-bold">{userDetails?.balance}</p>
-                  </div>
-                  <div className="mt-2 text-white">
-                    <button className="bg-indigo-700 p-2 rounded-3xl w-32 hover:bg-indigo-600">
-                      Add Money
-                    </button>
-                    <button className="bg-indigo-700 p-2 mt-2 w-32 rounded-3xl hover:bg-indigo-600">
-                      Withdraw
-                    </button>
-                  </div>
-                </div>
-              )}
+  <div
+    ref={balanceRef}
+    className="absolute -right-8 mt-4 w-48 p-3 bg-slate-950 from-gray-800 via-gray-700 to-gray-600 text-white rounded-lg shadow-md border border-gray-600"
+  >
+    <div className="text-xs font-medium text-gray-300 text-center mb-2">Your Balance</div>
+    <div className="flex gap-x-1 justify-center items-center  mb-4">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="w-6 h-6 text-white"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 8.25H9m6 3H9m3 6-3-3h1.5a3 3 0 1 0 0-6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+        />
+      </svg>
+      <p className="text-xl font-semibold">{userDetails?.balance}</p>
+    </div>
+    <div className="space-y-3">
+      <button className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-150 transform hover:scale-105">
+        <p className="text-sm font-medium">Add Money</p>
+      </button>
+      <button className="w-full py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 transition-all duration-150 transform hover:scale-105">
+        <p className="text-sm font-medium">Withdraw</p>
+      </button>
+    </div>
+  </div>
+)}
             </div>
 
             <div>
@@ -537,55 +537,56 @@ export default function DashAppbar() {
               </button>
             </div>
             {dropdownOpen && (
-              <div
-                ref={dropdownRef}
-                className="absolute right-8 top-16 z-20 font-mono  bg-zinc-950 divide-y divide-gray-100 rounded-lg shadow-2xl w-48 transition-transform duration-300 transform opacity-100 scale-100"
-              >
-                <ul className="py-2 rounded-lg text-base text-white shadow-2xl">
-                  <li>
-                    <button
-                      onClick={() => {
-                        router.push("/dashboard");
-                        setDropdownOpen(false);
-                      }}
-                      className="block px-4 py-3 hover:bg-indigo-700 rounded-lg w-full text-left transition-all duration-200 ease-in-out"
-                    >
-                      Home
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => {
-                        router.push("/profile");
-                        setDropdownOpen(false);
-                      }}
-                      className="block px-4 py-3 hover:bg-indigo-700 rounded-lg w-full text-left transition-all duration-200 ease-in-out"
-                    >
-                      Profile
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => {
-                        router.push("/settings");
-                        setDropdownOpen(false);
-                      }}
-                      className="block px-4 py-3 hover:bg-indigo-700 rounded-lg w-full text-left transition-all duration-200 ease-in-out"
-                    >
-                      Settings
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={handleSignOut}
-                      className="block px-4 py-3 hover:bg-indigo-700 rounded-lg w-full text-left transition-all duration-200 ease-in-out"
-                    >
-                      Sign Out
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
+  <div
+    ref={dropdownRef}
+    className="absolute right-8 top-16 z-20 bg-slate-950 divide-y divide-gray-700 rounded-lg shadow-lg w-48 transition-transform duration-300 transform opacity-100 scale-100"
+  >
+    <ul className="py-2 text-white text-sm font-medium">
+      <li>
+        <button
+          onClick={() => {
+            router.push("/dashboard");
+            setDropdownOpen(false);
+          }}
+          className="block px-4 py-3 hover:bg-indigo-700 rounded-lg w-full text-left transition-all duration-300 ease-in-out transform hover:scale-105"
+        >
+          Home
+        </button>
+      </li>
+      <li>
+        <button
+          onClick={() => {
+            router.push("/profile");
+            setDropdownOpen(false);
+          }}
+          className="block px-4 py-3 hover:bg-indigo-700 rounded-lg w-full text-left transition-all duration-300 ease-in-out transform hover:scale-105"
+        >
+          Profile
+        </button>
+      </li>
+      <li>
+        <button
+          onClick={() => {
+            router.push("/settings");
+            setDropdownOpen(false);
+          }}
+          className="block px-4 py-3 hover:bg-indigo-700 rounded-lg w-full text-left transition-all duration-300 ease-in-out transform hover:scale-105"
+        >
+          Settings
+        </button>
+      </li>
+      <li>
+        <button
+          onClick={handleSignOut}
+          className="block px-4 py-3 hover:bg-indigo-700 rounded-lg w-full text-left transition-all duration-300 ease-in-out transform hover:scale-105"
+        >
+          Sign Out
+        </button>
+      </li>
+    </ul>
+  </div>
+)}
+
           </div>
         </div>
       </nav>
