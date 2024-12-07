@@ -22,7 +22,7 @@ export async function PUT(req) {
         where:{authorId:id}
       })
 
-      if(checkPayment.paid_us===false){
+      if(checkPayment && checkPayment.paid_us===false){
         const [updatedUser, paymentUpdate] = await prisma.$transaction([
         prisma.userFullDetails.update({
           where: { authorId: id },

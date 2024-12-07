@@ -183,13 +183,17 @@ export default function Autopairing() {
             // Update state with the response
             setOppData({ oppname, winrate, ranking });
             setHeading("Match Confirmed");
-            router.push('/terminal')
+            setShowAlert(true)
+            setAlertMessage("Redirecting to terminal")
+            setTimeout(()=>{
+              router.push('/terminal')
+            },2000)
   
             // Store oppData in cookies with a 15-minute expiration
             Cookies.set(
               "oppData",
               JSON.stringify(postresponse.data),
-              { expires: 15 / (24 * 60) } // 15 minutes
+              { expires: 240 / (24 * 60) } // 15 minutes
             );
   
             retry = false; // Stop retrying after success
@@ -261,18 +265,18 @@ export default function Autopairing() {
 
   return (
     <div className="bg-black text-white md:p-14 lg:p-16 lg:h-screen h-full w-full ">
-      <div className="fixed">
+      <div className="fixed top-20  left-1/2 ">
         {/* Alert */}
         {showAlert && (
-          <div className="relative top-5  left-1/2  right-1/2 transform -translate-x-1/2 w-full max-w-lg">
-            <div
-              className="p-4 mb-4 text-xl bg-black text-green-200 rounded-lg border-2 border-slate-200 shadow-3xl "
-              role="alert"
-            >
-              {alertMessage}
-            </div>
+        <div className="absolute top-1/2 left-1/2  transform -translate-x-1/2 w-96">
+         <div
+            className="p-4 mb-4 text-xl font-mono bg-black text-white rounded-lg border-2 border-white"
+            role="alert"
+          >
+            {alertMessage}
           </div>
-        )}
+        </div>
+      )}
       </div>
         <DashAppbar/>
       <div>

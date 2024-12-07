@@ -7,7 +7,7 @@ import { useTradeData } from './TradeDataContext'; // Adjust the path as needed
 import axios from "axios";
 import Timer from "./Timer";
 import { useRef } from 'react';
-import { use } from "react";
+import Cookies from "js-cookie";
 
 
 
@@ -45,12 +45,19 @@ export default function Terminal() {
   const [showAlert,setShowAlert] = useState(false);
   const [alertMessage,setAlertMessage] = useState(false);
   const [currentTotalProfitOrLoss , setCurrentTotalProfitorLoss] = useState(0)
+  const [oppname , setOppname] = useState()
+  const previousLengthRef = useRef(closedTrades.length); // Store the initial length of closedTrades
   const [chartHeight, setChartHeight] = useState(80); // Set initial height to 80vh
   const chartRef = useRef(null); // Reference for the chart component
   const resizingRef = useRef(false); // Flag for resizing status
   const lastY = useRef(0); // Store last Y position of mouse during drag
 
-  
+  const [oppData, setOppData] = useState({
+    oppname: "",
+    winrate: "",
+    ranking: "",
+    oppDemoBalance:0,
+  });
   useEffect(() => {
     const leverageFunc = () => {
       if (demoBalance <= 20000 ) {
@@ -63,6 +70,53 @@ export default function Terminal() {
     };
     leverageFunc();
   }, [dynamicBalance]);
+  
+  // useEffect(() => {
+  //   const params = new URLSearchParams(window.location.search);
+  //   const paramOppname = params.get('oppname');
+  //   setOppname(paramOppname);  // Sets the amount from the URL query
+  // }, [window.location.search]);
+  
+  function getCookieValue(name) {
+    const match = document.cookie.match(
+      new RegExp("(^| )" + name + "=([^;]+)")
+    );
+    if (match) return match[2];
+    return null;
+  }
+  const getOpponentDetailsFromCookies = () => {
+    const storedDetails = Cookies.get("oppData");
+    return storedDetails ? JSON.parse(storedDetails) : null;
+  };
+
+  useEffect(()=>{
+    const storedDetails = getOpponentDetailsFromCookies();
+    if(storedDetails){
+      setOppData(storedDetails)
+    }
+  },[])
+
+  //fetch oppBalance 
+  useEffect(() => {
+    const fetchOppBalanceFunc = async () => {
+      if(oppData.oppname){
+        try {
+          const oppBalanceResponse = await axios.get('/api/game/fetchOppBalance', {
+            params: { oppname: oppData.oppname },
+          });
+          if(oppBalanceResponse.status===201){
+            console.log(oppBalanceResponse.data);
+            setOpponentBalance(oppBalanceResponse.data.oppBalance)
+          }
+        } catch (error) {
+          console.error('Error fetching opponent balance:', error);
+        }
+      }
+      
+    };
+  
+    fetchOppBalanceFunc();
+  }, [symbolPrice]);
   
   // Function to start resizing
   const handleMouseDown = (e) => {
@@ -542,38 +596,57 @@ useEffect(()=>{
 useEffect(() => {
   let totalProfitOrLoss = 0;
   const tempProfitArray = [];
-if(symbolPrice!==null){
-  
-  for (let i = 0; i < trades.length; i++) {
-    const trade = trades[i];
 
-    // Skip trades that are already closed
-    if (trade.closingTime !== null || trade.pending===true) continue;
+  if(symbolPrice !== null) {
+    // Calculate profit or loss for open trades
+    for (let i = 0; i < trades.length; i++) {
+      const trade = trades[i];
 
-    let individualProfitOrLoss = 0;
+      // Skip trades that are already closed
+      if (trade.closingTime !== null || trade.pending === true) continue;
 
-    if (trade.buyOrSell === "buy") {
-      individualProfitOrLoss = (symbolPrice * trade.unitsOrLots) - (trade.margin*trade.leverage);
-    } else if (trade.buyOrSell === "sell") {
-      individualProfitOrLoss = (trade.margin*trade.leverage) - (symbolPrice * trade.unitsOrLots);
+      let individualProfitOrLoss = 0;
+
+      if (trade.buyOrSell === "buy") {
+        individualProfitOrLoss = (symbolPrice * trade.unitsOrLots) - (trade.margin * trade.leverage);
+      } else if (trade.buyOrSell === "sell") {
+        individualProfitOrLoss = (trade.margin * trade.leverage) - (symbolPrice * trade.unitsOrLots);
+      }
+
+      individualProfitOrLoss = parseFloat(individualProfitOrLoss.toFixed(3));
+      totalProfitOrLoss += individualProfitOrLoss;
+
+      const profitObject = { id: trade.id, profit: individualProfitOrLoss };
+      tempProfitArray.push(profitObject);
     }
 
-    individualProfitOrLoss = parseFloat(individualProfitOrLoss.toFixed(3));
-    totalProfitOrLoss += individualProfitOrLoss;
+    setAllProfit(tempProfitArray);
+    setCurrentTotalProfitorLoss(totalProfitOrLoss);
 
-    const profitObject = { id: trade.id, profit: individualProfitOrLoss };
-    tempProfitArray.push(profitObject);
-  } 
-  setAllProfit(tempProfitArray);
-  setCurrentTotalProfitorLoss(totalProfitOrLoss)
-  // Update dynamicBalance only for open trades
-  setDynamicBalance(() => {
-    const newBalance = demoBalance + totalProfitOrLoss;
-    // console.log("Updated Balance (demoBalance + open trades):", newBalance);
-    return parseFloat(newBalance.toFixed(3));
-  });
-}
-}, [symbolPrice, trades]);
+    // Check if the length of closedTrades has changed
+    const currentLength = closedTrades.length;
+    let sum = 0;
+    for (let i = 0; i < currentLength; i++) {
+      sum += parseFloat(closedTrades[i].profitOrLoss);
+    }
+
+    // If the length has changed (increased or decreased)
+    if (currentLength !== previousLengthRef.current && previousLengthRef.current!==0) {
+      // Update the balance considering closed trades' profit or loss
+      setDynamicBalance(() => {
+        const newBalance = demoBalance + totalProfitOrLoss + sum;
+        previousLengthRef.current = currentLength; // Update the previous length
+        return parseFloat(newBalance.toFixed(3)); // Set new balance
+      });
+    } else{
+      // If the length hasn't changed, only update balance for open trades
+      setDynamicBalance(() => {
+        const newBalance = demoBalance + totalProfitOrLoss;
+        return parseFloat(newBalance.toFixed(3)); // Set new balance
+      });
+    }
+  }
+}, [symbolPrice, trades, closedTrades, demoBalance]);
 
 
   
@@ -655,7 +728,6 @@ const updateBalance = async () => {
       sum += parseFloat(closedTrades[i].profitOrLoss);
     }
 
-    console.log(currentTotalProfitOrLoss, "totalProfitor loss")
     // Calculate the total dynamic balance
     const balance = initialFixedBalance + sum + currentTotalProfitOrLoss;
 
@@ -671,18 +743,20 @@ const updateBalance = async () => {
       userId: parsedUserDetails.id,
     });
 
-    // Fetching the updated balance from the server
-    const getDemoBalance = await axios.get("/api/changeDemoBalance", {
-      params: { username: parsedUserDetails.username },
-    });
+    setDemoBalance(initialFixedBalance + sum);
+    console.log(demoBalance,'demon')
+    // // Fetching the updated balance from the server
+    // const getDemoBalance = await axios.get("/api/changeDemoBalance", {
+    //   params: { username: parsedUserDetails.username },
+    // });
 
-    if (getDemoBalance.status === 200) {
-      const updatedBalance = getDemoBalance.data.demoBalance;
-      setDynamicBalance(updatedBalance);
-      setDemoBalance(updatedBalance);
-    } else {
-      console.error("Failed to fetch updated balance. Status:", getDemoBalance.status);
-    }
+    // if (getDemoBalance.status === 200) {
+    //   const updatedBalance = getDemoBalance.data.demoBalance;
+    //   // setDynamicBalance(updatedBalance);
+    //   setDemoBalance(initialFixedBalance + sum);
+    // } else {
+    //   console.error("Failed to fetch updated balance. Status:", getDemoBalance.status);
+    // }
   } catch (error) {
     console.error("Error updating demo balance:", error);
   }
@@ -766,7 +840,13 @@ useEffect(() => {
   //   return () => clearInterval(intervalId);
   // }, [symbolPrice, symbol]); // Updated dependencies
   // ;
-
+  const [isDynamicHigher, setIsDynamicHigher] = useState(true);
+  useEffect(() => {
+    // Check which balance is higher and set the state accordingly
+    if (dynamicBalance !== null && opponentBalance !== null) {
+      setIsDynamicHigher(dynamicBalance >= opponentBalance);
+    }
+  }, [dynamicBalance, opponentBalance]);
 
   return (
 
@@ -807,19 +887,24 @@ useEffect(() => {
               className="w-[96%] mt-4 py-2 pl-10 mx-2 text-gray-700 bg-[#FFF6F6] border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
             />
             <ul className="w-[96%] mx-2 mt-6">
-              <li className="bg-green-700 h-[40px] text-base font-semibold text-white mb-3 rounded-lg flex items-center justify-around">
-                <span>Your Balance</span>
-                <span>$ {dynamicBalance !==null ? (dynamicBalance.toFixed(3)):' '}</span>
-              </li>
-              <li className="bg-red-700 h-[40px] text-base font-semibold text-white rounded-lg flex items-center justify-around">
-                {
-                  opponentBalance!== null ? (<span>opponentBalance</span>) : (<span className="mr-10">Opponent&apos;s Balance </span>)
-                }
-                {
-                  opponentBalance!== null ? (<span>${opponentBalance}</span>) : (<span>---------</span>)
-                }
-              </li>
-            </ul>
+  <li className="bg-green-700 h-[60px] text-base font-semibold text-white mb-3 rounded-lg flex items-center justify-between px-4">
+    <div className="flex flex-col items-start">
+      <span>Your Balance</span>
+    </div>
+    <div className="flex flex-col items-end">
+      <span>{dynamicBalance !== null ? `$${dynamicBalance.toFixed(3)}` : '-------'}</span>
+    </div>
+  </li>
+  <li className="bg-red-700 h-[60px] text-base font-semibold text-white rounded-lg flex items-center justify-between px-4">
+    <div className="flex flex-col items-start">
+      <span>Opponent&apos;s Balance</span>
+    </div>
+    <div className="flex flex-col items-end">
+      <span>{opponentBalance !== null ? `$${opponentBalance.toFixed(3)}` : '-------'}</span>
+    </div>
+  </li>
+</ul>
+
             <div className="text-4xl font-bold mt-7 text-white">Timer</div>
              <Timer/>
           </div>
