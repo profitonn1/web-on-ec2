@@ -30,7 +30,7 @@ const Timer = () => {
           {minutes}:{seconds < 10 ? '0' : ''}{seconds}
         </h1>
       ) : (
-        <h1>Time's up!</h1>
+        <h1>Time&apos;s up!</h1>
       )}
     </div>
   );

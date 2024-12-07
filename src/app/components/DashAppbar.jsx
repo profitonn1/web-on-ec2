@@ -353,31 +353,32 @@ export default function DashAppbar() {
     fetchData();
   }, []);
 
-  // Handle clicks outside dropdown or balance popover
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        balanceOpen &&
-        balanceRef.current &&
-        !balanceRef.current.contains(event.target) &&
-        !buttonRef2.current?.contains(event.target)
-      ) {
-        setBalanceOpen(false);
-      }
+ // Handle clicks outside dropdown or balance popover
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      balanceOpen &&
+      balanceRef.current &&
+      !balanceRef.current.contains(event.target) &&
+      !buttonRef2.current?.contains(event.target)
+    ) {
+      setBalanceOpen(false);
+    }
 
-      if (
-        dropdownOpen &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target) &&
-        !buttonRef.current?.contains(event.target)
-      ) {
-        setDropdownOpen(false);
-      }
-    };
+    // Check if the click is outside the dropdown or button
+    if (
+      dropdownOpen &&
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target) &&
+      !buttonRef.current?.contains(event.target)
+    ) {
+      setDropdownOpen(false); // Close dropdown when clicking outside
+    }
+  };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dropdownOpen, balanceOpen]);
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, [dropdownOpen, balanceOpen]);
 
   const balanceButton = (event) => {
     event.stopPropagation();
@@ -385,8 +386,8 @@ export default function DashAppbar() {
   };
 
   const toggleDropdown = (event) => {
-    event.stopPropagation();
-    setDropdownOpen(!dropdownOpen);
+    event.stopPropagation(); // Prevents the event from bubbling up and triggering other handlers
+    setDropdownOpen((prev) => !prev); // Toggle the dropdown state
   };
 
   const handleSignOut = async () => {
@@ -468,7 +469,7 @@ export default function DashAppbar() {
               <button
                 onClick={balanceButton}
                 ref={buttonRef2}
-                className="w-28 rounded-lg lg:w-36 lg:gap-x-5 p-3 lg:p-5 h-12 text-white bg-indigo-700 font-bold text-lg flex items-center justify-center relative"
+                className="w-28 rounded-lg lg:w-36 lg:gap-x-5 p-3 lg:p-5 h-12 text-white bg-indigo-700 font-bold text-lg flex items-center justify-center relative transition duration-300 ease-in-out transform hover:scale-105"
               >
                 <Image
                   src={walletImage}
@@ -481,7 +482,7 @@ export default function DashAppbar() {
               {balanceOpen && (
   <div
     ref={balanceRef}
-    className="absolute -right-8 mt-4 w-48 p-3 bg-slate-950 from-gray-800 via-gray-700 to-gray-600 text-white rounded-lg shadow-md border border-gray-600"
+    className="absolute -right-8 mt-4 top-10 w-48 p-3 bg-slate-950 from-gray-800 via-gray-700 to-gray-600 text-white rounded-lg shadow-md border border-gray-600 "
   >
     <div className="text-xs font-medium text-gray-300 text-center mb-2">Your Balance</div>
     <div className="flex gap-x-1 justify-center items-center  mb-4">
@@ -513,13 +514,15 @@ export default function DashAppbar() {
 )}
             </div>
 
-            <div>
-              <button
-                type="button"
-                className="w-14 h-12 relative focus:outline-none bg-indigo-700 rounded"
-                onClick={toggleDropdown}
-                ref={buttonRef}
-              >
+            <div className="flex flex-col justify-center">
+            <button
+              type="button"
+              className={`w-14 h-12 relative focus:outline-none bg-indigo-700 rounded transition duration-300 ease-in-out transform ${
+                dropdownOpen ? 'scale-105' : ''
+              } hover:scale-105`}
+              onClick={toggleDropdown}
+              ref={buttonRef}
+            >
                 <div className="block w-5 absolute left-6 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <span
                     className="block absolute h-1 w-7 text-white bg-current transform transition duration-500 ease-in-out"
@@ -539,7 +542,7 @@ export default function DashAppbar() {
             {dropdownOpen && (
   <div
     ref={dropdownRef}
-    className="absolute right-8 top-16 z-20 bg-slate-950 divide-y divide-gray-700 rounded-lg shadow-lg w-48 transition-transform duration-300 transform opacity-100 scale-100"
+    className="absolute right-8 top-16 z-20 bg-slate-950 divide-y divide-gray-700 rounded-lg shadow-lg w-48 transition-transform duration-300 transform opacity-100 scale-100  border border-gray-600"
   >
     <ul className="py-2 text-white text-sm font-medium">
       <li>

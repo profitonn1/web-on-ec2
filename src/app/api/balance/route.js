@@ -40,6 +40,7 @@ export async function GET(request) {
         averageroc: "0",
         balanceINR: "0",
         Ranking: "Null",
+        winRate:'0/0'
       });
     }
 
@@ -50,6 +51,7 @@ export async function GET(request) {
       averageroc: userFullDetails.averageroc || "0",
       balanceINR: userFullDetails.balanceINR || "0",
       Ranking: userFullDetails.Ranking || "Null",
+      winRate:userFullDetails.winRate || '0/0'
     });
   } catch (error) {
     if (error instanceof Error) {

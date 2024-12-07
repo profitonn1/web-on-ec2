@@ -209,9 +209,16 @@ export default function Bstartgame() {
   };
 
   const handleItemClick = (id, value) => {
-    setSelectedItemId(id);
-    setSelectedItem(value); // Store the clicked item's value
+    // Toggle the selected state if the same item is clicked again
+    if (selectedItem === value) {
+      setSelectedItem(null); // Deselect if it's already selected
+      setSelectedItemId(null); // Deselect the item ID as well
+    } else {
+      setSelectedItem(value); // Set the selected item value
+      setSelectedItemId(id); // Set the selected item ID
+    }
   };
+  
 
   const autoAmountSelect = async () => {
     try {
@@ -375,34 +382,32 @@ export default function Bstartgame() {
                           </h1>
                           <div className="flex justify-center">
                           <div className="text-center">
-                            <ul className="text-white font-mono text-lg mb-2 grid grid-cols-2 gap-8">
-                              {items.map((item) => (
-                                <li
-                                  key={item.id}
-                                  className={`w-20 font-mono h-8 border-2 border-white flex items-center justify-center mb-4 hover:cursor-pointer hover:bg-[#006BFF] ${
-                                    selectedItem === item.value
-                                      ? "bg-[#161D6F]"
-                                      : "bg-blue-600"
+                          <ul className="text-white font-mono text-lg mb-2 grid grid-cols-2 gap-8">
+                            {items.map((item) => (
+                              <li
+                                key={item.id}
+                                className={`w-20 font-mono h-8 border-2 border-white flex items-center justify-center mb-4 
+                                  cursor-pointer 
+                                  ${selectedItem === null ? "hover:bg-[#006BFF]" : ""} 
+                                  ${selectedItem === item.value
+                                    ? "bg-[#161D6F]" // Selected item color
+                                    : "bg-blue-600" // Default item color
                                   }`}
-                                  onClick={() =>
-                                  {
-                                    handleItemClick(item.id, item.value)
-                                    selectedItem == null
-                                  }
-                                  }
-                                >
-                                  ₹{item.value}
-                                </li>
-                              ))}
-                            </ul>
+                                onClick={() => handleItemClick(item.id, item.value)}
+                              >
+                                ₹{item.value}
+                              </li>
+                            ))}
+                          </ul>
                           </div>
                           </div>
                           
                           <div className="flex justify-center gap-x-4 mb-2">
                             <button
                               onClick={autoAmountSelect}
-                              disabled={!selectedItem}
-                              className="mt-4 w-[30%] font-mono transition duration-300 ease-in-out transform hover:scale-105 bg-indigo-700 hover:bg-indigo-500 text-white p-2 rounded"
+                              disabled={!selectedItem} // Disables the button when no item is selected
+                              className={`mt-4 w-[30%] font-mono transition duration-300 ease-in-out transform hover:scale-105 bg-indigo-700 hover:bg-indigo-500 text-white p-2 rounded 
+                                ${!selectedItem ? 'cursor-not-allowed' : 'cursor-pointer'}`} // Conditionally change cursor
                             >
                               Submit
                             </button>
@@ -506,7 +511,7 @@ export default function Bstartgame() {
                       dataToButton();
                     }}
                   >
-                    See Who You&apos;ve Challenged{" "}
+                    See Who You&apos;ve Challenged
                   </button>
                 </div>
               </div>

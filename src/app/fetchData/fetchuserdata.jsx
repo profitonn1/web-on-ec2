@@ -73,10 +73,10 @@ export async function fetchUserData() {
 
       return {
         joinedDate: date || "",
-        username: balanceResponse.data.username || "",
-        balance: balanceResponse.data.balanceINR || "",
-        Ranking: balanceResponse.data.Ranking || "",
-        winrate: balanceResponse.data.winRate || ""
+        username: balanceResponse.data.username ,
+        balance: balanceResponse.data.balanceINR ,
+        Ranking: balanceResponse.data.Ranking ,
+        winrate: balanceResponse.data.winRate
       }
     }
   } catch (err) {

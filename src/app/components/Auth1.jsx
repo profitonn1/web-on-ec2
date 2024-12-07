@@ -178,7 +178,7 @@ export default function SignupBox() {
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-white">
                 I agree to the Terms and Conditions

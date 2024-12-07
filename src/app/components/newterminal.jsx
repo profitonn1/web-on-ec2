@@ -7,6 +7,7 @@ import { useTradeData } from './TradeDataContext'; // Adjust the path as needed
 import axios from "axios";
 import Timer from "./Timer";
 import { useRef } from 'react';
+import { use } from "react";
 
 
 
@@ -43,6 +44,7 @@ export default function Terminal() {
   const [leverageValue , setLeverageValue] = useState(50);
   const [showAlert,setShowAlert] = useState(false);
   const [alertMessage,setAlertMessage] = useState(false);
+  const [currentTotalProfitOrLoss , setCurrentTotalProfitorLoss] = useState(0)
   const [chartHeight, setChartHeight] = useState(80); // Set initial height to 80vh
   const chartRef = useRef(null); // Reference for the chart component
   const resizingRef = useRef(false); // Flag for resizing status
@@ -496,6 +498,11 @@ const closeTradeFunc = async (tradeId, profitOrLoss) => {
   }
 };
 
+useEffect(()=>{
+  if(openTrades.length!==0){
+    updateBalance();
+  }
+},[symbolPrice])
 
   
   // Log updates after state changes
@@ -558,7 +565,7 @@ if(symbolPrice!==null){
     tempProfitArray.push(profitObject);
   } 
   setAllProfit(tempProfitArray);
-
+  setCurrentTotalProfitorLoss(totalProfitOrLoss)
   // Update dynamicBalance only for open trades
   setDynamicBalance(() => {
     const newBalance = demoBalance + totalProfitOrLoss;
@@ -590,6 +597,50 @@ useEffect(() => {
 
 
 
+// const updateBalance = async () => {
+//   try {
+//     if (initialFixedBalance === null || isNaN(initialFixedBalance)) {
+//       console.warn("Initial fixed balance is not set. Skipping update.");
+//       return;
+//     }
+
+//     let sum = 0;
+
+//     for (let i = 0; i < closedTrades.length; i++) {
+//       sum += parseFloat(closedTrades[i].profitOrLoss);
+//     }
+
+//     const balance = initialFixedBalance + sum;
+
+//     if (balance === null || isNaN(balance)) {
+//       console.warn("Invalid balance calculation. Skipping update.");
+//       return;
+//     }
+
+//     // Updating the balance on the server
+//     await axios.post("/api/changeDemoBalance", {
+//       demoBalance: balance, // Send the current dynamic balance
+//       username: parsedUserDetails.username,
+//       userId: parsedUserDetails.id,
+//     });
+
+//     // Fetching the updated balance from the server
+//     const getDemoBalance = await axios.get("/api/changeDemoBalance", {
+//       params: { username: parsedUserDetails.username },
+//     });
+
+//     if (getDemoBalance.status === 200) {
+//       const updatedBalance = getDemoBalance.data.demoBalance;
+//       setDynamicBalance(updatedBalance);
+//       setDemoBalance(updatedBalance);
+//     } else {
+//       console.error("Failed to fetch updated balance. Status:", getDemoBalance.status);
+//     }
+//   } catch (error) {
+//     console.error("Error updating demo balance:", error);
+//   }
+// };
+
 const updateBalance = async () => {
   try {
     if (initialFixedBalance === null || isNaN(initialFixedBalance)) {
@@ -599,11 +650,14 @@ const updateBalance = async () => {
 
     let sum = 0;
 
+    // Add profit or loss from closed trades
     for (let i = 0; i < closedTrades.length; i++) {
       sum += parseFloat(closedTrades[i].profitOrLoss);
     }
 
-    const balance = initialFixedBalance + sum;
+    console.log(currentTotalProfitOrLoss, "totalProfitor loss")
+    // Calculate the total dynamic balance
+    const balance = initialFixedBalance + sum + currentTotalProfitOrLoss;
 
     if (balance === null || isNaN(balance)) {
       console.warn("Invalid balance calculation. Skipping update.");
@@ -612,7 +666,7 @@ const updateBalance = async () => {
 
     // Updating the balance on the server
     await axios.post("/api/changeDemoBalance", {
-      demoBalance: balance, // Send the current dynamic balance
+      demoBalance: balance, // Send the correct dynamic balance
       username: parsedUserDetails.username,
       userId: parsedUserDetails.id,
     });
@@ -633,6 +687,26 @@ const updateBalance = async () => {
     console.error("Error updating demo balance:", error);
   }
 };
+
+// Helper function to get the current market price
+const getCurrentMarketPrice = async (symbol) => {
+  try {
+    const response = await axios.get(`/api/marketPrice`, {
+      params: { symbol }
+    });
+    
+    if (response.status === 200) {
+      return response.data.price; // Assuming the price is in response.data.price
+    } else {
+      console.error("Failed to fetch market price for symbol:", symbol);
+      return 0;
+    }
+  } catch (error) {
+    console.error("Error fetching market price:", error);
+    return 0;
+  }
+};
+
 
 useEffect(() => {
   const getInitialDemoBalance = async () => {
@@ -739,7 +813,7 @@ useEffect(() => {
               </li>
               <li className="bg-red-700 h-[40px] text-base font-semibold text-white rounded-lg flex items-center justify-around">
                 {
-                  opponentBalance!== null ? (<span>opponentBalance</span>) : (<span className="mr-10">Opponent Balance </span>)
+                  opponentBalance!== null ? (<span>opponentBalance</span>) : (<span className="mr-10">Opponent&apos;s Balance </span>)
                 }
                 {
                   opponentBalance!== null ? (<span>${opponentBalance}</span>) : (<span>---------</span>)

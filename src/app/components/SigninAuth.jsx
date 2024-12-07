@@ -162,7 +162,7 @@ export default function SigninAuth() {
 
         {/* Sign Up Link */}
         <p className="mt-4 text-center text-sm text-white opacity-80">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <button
             className="font-medium text-indigo-400 hover:text-indigo-200"
             onClick={() => router.push("/signup")}

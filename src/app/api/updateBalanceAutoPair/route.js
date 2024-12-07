@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -7,21 +7,53 @@ export async function PUT(req) {
   try {
     const { id, newBalance } = await req.json();
 
-    // Convert newBalance and id to strings if necessary
-    const balanceToString = String(newBalance);
-    const newID = String(id);
+    if (!id || newBalance == null) {
+      return NextResponse.json(
+        { error: 'ID and newBalance are required' },
+        { status: 400 }
+      );
+    }
 
-    // Update user balance in the database
-    const updatedUser = await prisma.userFullDetails.update({
-      where: { authorId: newID },
-      data: { balanceINR: balanceToString },
-    });
+    const balanceToString = String(newBalance); // Ensure balance is in string format
 
-    return NextResponse.json(updatedUser, { status: 200 });
+    // Perform both updates in a single transaction
+   
+      const checkPayment = await prisma.userAutomaticPairedDetails.findFirst({
+        where:{authorId:id}
+      })
+
+      if(checkPayment.paid_us===false){
+        const [updatedUser, paymentUpdate] = await prisma.$transaction([
+        prisma.userFullDetails.update({
+          where: { authorId: id },
+          data: { balanceINR: balanceToString },
+        }),
+        prisma.userAutomaticPairedDetails.update({
+          where: { authorId: id },
+          data: { paid_us: true },
+        }),
+      ]);
+        return NextResponse.json(
+          {
+            message: 'User balance and payment status updated successfully',
+            updatedUser,
+            paymentUpdate,
+          },
+          { status: 200 }
+        );
+      }
+      else{
+        return NextResponse.json({msg:"User already paid, redirect to autopairing page"},{status:201})
+      }
+   
+   
   } catch (error) {
-    console.error("Error updating user balance:", error);
-    return NextResponse.json({ error: "Failed to update balance" }, { status: 500 });
-  }finally {
-    await prisma.$disconnect(); // Ensure the database connection is closed after the request
+    console.error('Error updating user details:', error);
+    return NextResponse.json(
+      { error: 'Failed to update details. Please try again.' },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
   }
 }

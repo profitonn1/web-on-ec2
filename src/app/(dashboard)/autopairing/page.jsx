@@ -5,26 +5,26 @@ import { useEffect, useState } from "react";
 import { getCombinedData } from "../../fetchData/fetchuserdata";
 import { useRouter } from "next/navigation";
 import DashAppbar from "../../components/DashAppbar";
-import { useLocation } from 'react-router-dom';
+
 
 export default function Autopairing() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [, setIsSuccess] = useState(false);
-  const [amount, setAmount] = useState('0');
-
+  const [amount, setAmount] = useState(null);
+  const [isRetrying, setIsRetrying] = useState(false);
   const [heading, setHeading] = useState("Finding Player");
   const [oppData, setOppData] = useState({
     oppname: "",
     winrate: "",
     ranking: "",
+    oppDemoBalance:0,
   });
   useEffect(() => {
-    const params = window.location.search;
-    const urlParams = new URLSearchParams(params);
-    const paramAmount = urlParams.get('amount');
-    setAmount(paramAmount);
-  }, []); // This will set the amount once on mount
+    const params = new URLSearchParams(window.location.search);
+    const paramAmount = params.get('amount');
+    setAmount(paramAmount);  // Sets the amount from the URL query
+  }, [window.location.search]);
   
 
   // const [name, setName] = useState<any>(null);
@@ -33,28 +33,9 @@ export default function Autopairing() {
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [showHeading , setShowHeading] = useState("")
+  const [showHeading , setShowHeading] = useState(false)
   const [currentQuote, setCurrentQuote] = useState(""); // State to store the current quote
 
-
-  function getCookieValue(name) {
-    const match = document.cookie.match(
-      new RegExp("(^| )" + name + "=([^;]+)")
-    );
-    if (match) return match[2];
-    return null;
-  }
-  useEffect(() => {
-    const storedDetails = getOpponentDetailsFromCookies();
-  
-    if (storedDetails) {
-      console.log("Setting state with details:", storedDetails); // Debugging line
-      setOppData(storedDetails);
-    } else {
-      console.log("No details found in cookies");
-    }
-  }, []); // Empty dependency array means this effect runs only once when the component mounts
-  
 
   const cryptoTradingQuotes = [
     "Bitcoin is a technological tour de force. – Bill Gates",
@@ -141,178 +122,132 @@ export default function Autopairing() {
   }, []); // Empty dependency array ensures this effect runs only once when the component mounts
 
 
+  function getCookieValue(name) {
+    const match = document.cookie.match(
+      new RegExp("(^| )" + name + "=([^;]+)")
+    );
+    if (match) return match[2];
+    return null;
+  }
+  useEffect(() => {
+    const storedDetails = getOpponentDetailsFromCookies();
+  
+    if (storedDetails) {
+      console.log("Setting state with details:", storedDetails); // Debugging line
+      setOppData(storedDetails);
+      setHeading("Match Confirmed");
+      setShowHeading(true);
+    } else {
+      console.log("No details found in cookies");
+    }
+  }, []); // Empty dependency array means this effect runs only once when the component mounts
+  
 
   const getOpponentDetailsFromCookies = () => {
-    const storedDetails = Cookies.get("opponentDetails");
+    const storedDetails = Cookies.get("oppData");
     return storedDetails ? JSON.parse(storedDetails) : null;
   };
 
+
+
   const handleSubmit = async () => {
-    try {
-      setLoading(true);
-      let success = false;
-      while (!success && amount !="0") {
-        try {
-          const userDetailsCookie = getCookieValue("userDetails");
-          // Start the game by posting the amount
-          if (userDetailsCookie) {
-            const decodedUserDetails = decodeURIComponent(userDetailsCookie);
-            const parsedUserDetails = JSON.parse(decodedUserDetails);
-           
-            const postresponse = await axios.post("/api/game/automaticpairing", {
-              userId: parsedUserDetails.id,
-              username: parsedUserDetails.username,
-              amount: amount, // The amount selected
-            });
-
-            if (postresponse.status === 201) {
-              success = true;
-
-              // Get the response data (opponent details)
-              // const opponentDetails = postresponse.data;
-
-              // // Store opponent details in both cookies and state
-              // const expiresIn30Minutes = new Date(
-              //   new Date().getTime() + 30 * 60 * 1000
-              // );
-
-              // // Set the cookie with a 30-minute expiration time
-              // Cookies.set("opponentDetails", JSON.stringify(opponentDetails), {
-              //   expires: expiresIn30Minutes,
-              // });
-              // setOppData(opponentDetails); // Update the state with the details
-
-              // // Optionally, start checking for an opponent if needed
-              checkForOpponent();
-            }
-          }
-        } catch (error) {
-          if (axios.isAxiosError(error) && error.response?.status === 404) {
-            setShowHeading("Finding Player");
-            // setShowAlert(true);
-            setTimeout(() => {
-              setShowAlert(false);
-            }, 3000);
-            console.log("Opponent not found, retrying...");
-            await new Promise((resolve) => setTimeout(resolve, 1500)); // Wait for 1 second before retrying
-          } else {
-            console.error("Unexpected error:", error);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error starting the game:", error);
-    }
-  };
-
- 
-  const checkForOpponent = async () => {
+    console.log(oppData);
+    setShowHeading(true);
+    console.log(amount);
+  
     try {
       const userDetailsCookie = getCookieValue("userDetails");
-      // Start the game by posting the amount
-      if (userDetailsCookie) {
-        const decodedUserDetails = decodeURIComponent(userDetailsCookie);
-        const parsedUserDetails = JSON.parse(decodedUserDetails);
-        const oppResponse = await axios.get("/api/game/automaticpairing", {
-          params: {
-            userId: parsedUserDetails.id,
+  
+      if (!userDetailsCookie) {
+        console.log("No user details found in cookies.");
+        return;
+      }
+  
+      const decodedUserDetails = decodeURIComponent(userDetailsCookie);
+      const parsedUserDetails = JSON.parse(decodedUserDetails);
+  
+      let retry = true;
+      while (retry && amount !== null && oppData.oppname === "") {
+        try {
+          // Make the API request
+          const postresponse = await axios.post("/api/game/automaticpairing", {
+            id: parsedUserDetails.id,
             username: parsedUserDetails.username,
-            amount: amount,
-          },
-          withCredentials: true
-        });     
-
-        if(oppResponse.status===201){
-          const expiresIn30Minutes = new Date(
-            new Date().getTime() + 30 * 60 * 1000
-          );
+            amount,
+          });
   
-          const storeOpponentDetailsInCookies = (details) => {
-            Cookies.set("opponentDetails", JSON.stringify(details), {
-              expires: expiresIn30Minutes,
-            }); // Store for 7 days
-          };
-          if (oppResponse.data) {
-            storeOpponentDetailsInCookies(oppResponse.data);
-            setShowHeading("Opponent Found");
-            setIsSuccess(true);
-            setShowAlert(true);
-            setTimeout(() => {
-              setShowAlert(false);
-              // router.push('/payment');
-            }, 1500);
+          // Handle successful responses
+          if (postresponse.status === 201 || postresponse.status === 200) {
+            const { oppname, winrate, ranking } = postresponse.data;
   
-            if (oppResponse.status === 404) {
-              setAlertMessage("Finding Player");
-              setShowAlert(true);
-              setTimeout(() => {
-                setShowAlert(false);
-                // router.push('/payment');
-              }, 1500);
-            }
+            // Update state with the response
+            setOppData({ oppname, winrate, ranking });
+            setHeading("Match Confirmed");
+            router.push('/terminal')
   
-            setHeading("Match Confirmed")
-        }
-        } else {
-          // If no opponent found, keep checking after a delay
-          setTimeout(checkForOpponent, 3000); // Retry after 3 seconds
-        }
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        if (amount === "0") {
-          setAlertMessage("Please Select the Amount");
-          setShowAlert(true);
-          setTimeout(() => {
-            setShowAlert(false);
-          }, 1500);
-        } else {
-          setAlertMessage("Finding Player");
-          setShowAlert(true);
-          setTimeout(() => {
-            setShowAlert(false);
-          }, 1500);
-          // Keep checking for an opponent after a delay
-          setTimeout(checkForOpponent, 3000); // Retry after 3 seconds
+            // Store oppData in cookies with a 15-minute expiration
+            Cookies.set(
+              "oppData",
+              JSON.stringify(postresponse.data),
+              { expires: 15 / (24 * 60) } // 15 minutes
+            );
+  
+            retry = false; // Stop retrying after success
+          }
+          // Handle 404 responses
+          else if (postresponse.status === 404) {
+            console.log("No opponent found, retrying...");
+            setHeading("Finding Player");
+            // Retry after 5 seconds
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+          }
+          // Handle unexpected responses
+          else {
+            console.log(`Unexpected response status: ${postresponse.status}`);
+            retry = false;
+          }
+        } catch (error) {
+          console.error("Error in API request:", error);
+          // Ensure retries continue on network or unexpected errors
+          if (error.response?.status === 404) {
+            console.log("Retrying due to 404 error...");
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+          } else {
+            retry = false; // Stop retrying on other errors
+          }
         }
       }
+    } catch (e) {
+      console.error("Error in finding opponent:", e);
     }
   };
-
-useEffect(()=>{
-
-  // if(oppData.oppname ==="" && oppData.ranking==="" && oppData.winrate===""){
-  //   handleSubmit();
-  // }
-  checkForOpponent();
-},[amount])
-
   
-  // const paymentButton = () => {
-  //   const opponentData = Cookies.get("opponentDetails");
-  //   console.log("opponentData:", opponentData); // To check the value in the console
-  //   if (opponentData === undefined) {
-  //     setAlertMessage("Please Select the Amount");
-  //     setShowAlert(true);
-  //     setTimeout(() => {
-  //       setShowAlert(false);
-  //     }, 1500);
-  //   } else {
-  //     setAlertMessage("Redirecting to payment page");
-  //     setShowAlert(true);
-
-  //     setTimeout(() => {
-  //       setShowAlert(false);
-  //       router.push("/payments");
-  //     }, 1500);
-  //   }
-  // };
+  useEffect(() => {
+    const handleRetry = async () => {
+      if (!isRetrying) {
+        setIsRetrying(true); // Set retry flag to true
+        await handleSubmit(); // Call handleSubmit to start or retry
+        setIsRetrying(false); // Reset retry flag after the function finishes
+      }
+    };
+  
+    // Trigger the retry logic when `amount` changes
+    if (amount !== null) {
+      handleRetry();
+    }
+    // Adding a cleanup to cancel retries if `amount` changes mid-retry
+    return () => {
+      setIsRetrying(false);
+    };
+  }, [amount]);
+  
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const combinedData = await getCombinedData();
         setData(combinedData);
+        console.log(combinedData , "userdata")
       } catch (error) {
         console.error("Error fetching combined data:", error);
       }
@@ -342,10 +277,10 @@ useEffect(()=>{
         <DashAppbar/>
       <div>
         <div className="lg:text-9xl md:text-7xl font-sans text-5xl text-center font-semibold p-6 mt-12 lg:-mb-4">
-        {loading && (
+        {showHeading && (
           <div className="flex justify-center items-center space-x-2">
-            <div>{showHeading}</div>
-            <div className="loader mt-20 "></div>
+            <div>{heading}</div>
+            {heading ==="Finding Player"?<div className="loader mt-20 "></div>:""}
           </div>
         )}
 
@@ -383,7 +318,7 @@ useEffect(()=>{
               </span>
               <br />
               <span className="text-lg text-white">
-                Username :{oppData?.username}
+                Username :{oppData?.oppname}
               </span>
               <br />
               <span className="text-lg text-white">
@@ -398,48 +333,11 @@ useEffect(()=>{
           </div>
         </div>
 
-        <div className="lg:flex lg:flex-col items-start p-4 ">
-          {/* <div className="text-4xl p-2 w-full text-white font-medium mb-4">
-            <div className="mb-4">
-              <span className="">Game Options</span>
-            </div>
-          </div> */}
-
-          {/* <div className="lg:flex lg:items-center  lg:space-x-72 text-center  ">
-            <div className="flex items-center space-x-4 ">
-              <form className="inline-block ">
-                <select
-                  name="Amount"
-                  className="hover:bg-slate-700 cursor-pointer text-lg p-2 bg-zinc-900 text-white border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onChange={setAmountFunction}
-                >
-                  <option value="" disabled selected>
-                    Select amount
-                  </option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                  <option value="150">150</option>
-                  <option value="200">200</option>
-                </select>
-              </form>
-              <button
-                onClick={handleSubmit}
-                className="transition duration-300 ease-in-out transform hover:scale-105 flex items-center font-semibold justify-center rounded-lg h-8 lg:h-10 px-5 bg-indigo-700 text-[#FFFFFF] hover:bg-indigo-500 text-lg w-[240px] lg:w-full"
-              >
-                Submit
-              </button>
-            </div>
-          </div> */}
-        </div>
-        {/* <div className="flex justify-center">
-          <button className="transition duration-300 ease-in-out transform hover:scale-105 flex items-center font-semibold justify-center rounded-lg h-8 lg:h-10 px-8 bg-indigo-700 text-[#FFFFFF] hover:bg-indigo-500 text-lg w-[240px] lg:w-[260px]">
-            Cancel
-          </button>
-        </div> */}
+      
         <div className="flex justify-center">
         <div className="text-center mt-12 text-4xl text-white font-bold opacity-60 w-[60vw]">
-          <p>{getRandomQuote()}</p>
-      </div>
+            <p>{getRandomQuote()}</p>
+        </div>
         </div>
       </div>
     </div>

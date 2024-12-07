@@ -40,10 +40,13 @@ model  TotalAutomaticHistory {
   playerTwoUserName    String
   playerThreeUserName  String?              
   playerFourUserName   String?
-  first                String
-  second               String
+  first                String?
+  second               String?
   third                String?
   fourth               String?
+  status               String               @default("ongoing")
+  startTime            DateTime             @default(now())   
+  endTime              DateTime?                  
 
 }  
 
@@ -87,6 +90,7 @@ model UserAutomaticPairedDetails{
   opponentId         String?
   amount             String?
   category           String
+  paid_us            Boolean?     @default(false)
 }
 
 model ChallengeGameRangeDetails{

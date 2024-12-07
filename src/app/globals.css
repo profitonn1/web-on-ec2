@@ -67,7 +67,7 @@ input[type="number"] {
 
 
 
-/* open , close scroll bar  in terminal
+/* open , close scroll bar  in terminal */
 /* Custom scrollbar styles */
 .custom-scrollbar::-webkit-scrollbar {
   width: 2px; /* Very thin vertical scrollbar */
@@ -87,7 +87,7 @@ input[type="number"] {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #999; /* Thumb hover effect */
-} */
+} 
 
 /* Apply to the main CSS file or inline within a <style> tag */
 
@@ -369,3 +369,5 @@ input:checked ~ span:last-child {
     clip-path: inset(0 -34% 0 0); /* Expands the clip path to reveal the dots progressively */
   }
 }
+
+

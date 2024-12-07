@@ -77,7 +77,7 @@ export default function Home() {
             & Win Big
           </span>
           <h1 className="text-base font-bold lg:text-3xl text-left mt-10 px-5 text-white opacity-100 scroll-fade">
-            Exciting Stock Market Challenge!
+            Your Crypto Journey Starts Now! 
           </h1>
           <h1 className="text-base font-bold lg:text-3xl text-left mt-0.5 px-5 text-white opacity-100 scroll-fade">
             Demo Trading platform to compete with traders like you
@@ -114,7 +114,7 @@ export default function Home() {
             {/* Text Section */}
             <div className="w-full lg:w-[50%] text-center lg:text-left ml-8">
               <h1 className="text-white text-4xl lg:text-6xl font-extrabold leading-tight mb-4 scroll-fade">
-                India's First Gamified Crypto Trading Platform
+                India&apos;s First Gamified Crypto Trading Platform
               </h1>
               <p className="text-white text-base lg:text-2xl leading-relaxed mb-8 px-4 lg:px-0 scroll-fade">
                 Transforms the traditional trading experience into a competitive
