@@ -33,7 +33,7 @@ model User {
 }
 
 model  TotalAutomaticHistory {
-  id                   String               @unique @id @default(uuid())
+  gameId               String               @unique @id @default(uuid())
   amount               String     
   category             String
   playerOneUserName    String                    

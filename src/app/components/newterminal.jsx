@@ -609,13 +609,15 @@ export default function Terminal() {
           const profitOrLoss = profitData ? profitData.profit.toFixed(3) : 0;
           closeTradeFunc(trade.id, profitOrLoss); // Close each trade
         });
-        setShowAfterMatchPopup(true); // Show the after-match popup
-        await axios.post("/api/afterGameWalletBalanceUpdate", {
+
+        await axios.post("/api/game/afterGameWalletBalanceUpdate", {
           params: {
             username: parsedUserDetails.username,
             oppname: oppData.oppname,
           },
         });
+        setShowAfterMatchPopup(true); // Show the after-match popup
+
       };
 
       if (trades.length > 0) {
