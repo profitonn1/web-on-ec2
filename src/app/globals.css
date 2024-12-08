@@ -20,7 +20,6 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-
 /* ToggleButton  In Terminal */
 * {
   margin: 0;
@@ -36,14 +35,13 @@ input:checked ~ span:last-child {
 }
 
 .optionStyle:hover {
-  background-color:#383746 /* Change this to your desired hover color */
+  background-color: #383746; /* Change this to your desired hover color */
 }
-
 
 /* terminal input box */
 
 /* input box in terminal */
-input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none; /* Removes arrows for WebKit browsers */
   margin: 0; /* Removes extra margin */
@@ -54,7 +52,6 @@ input[type="number"] {
   appearance: none; /* General appearance property */
 }
 
-
 /* Hides the spinner controls in the input */
 .no-spinner::-webkit-outer-spin-button,
 .no-spinner::-webkit-inner-spin-button {
@@ -62,10 +59,6 @@ input[type="number"] {
   appearance: none; /* Standard property */
   margin: 0;
 }
-
-
-
-
 
 /* open , close scroll bar  in terminal */
 /* Custom scrollbar styles */
@@ -75,7 +68,7 @@ input[type="number"] {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #18181B; /* Track color */
+  background: #18181b; /* Track color */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -87,7 +80,7 @@ input[type="number"] {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #999; /* Thumb hover effect */
-} 
+}
 
 /* Apply to the main CSS file or inline within a <style> tag */
 
@@ -110,89 +103,76 @@ input[type="number"] {
   scrollbar-color: #6b7280 #1f2937; /* thumb color | track color */
 }
 
-
-
 input:checked {
-  background-color: #22c55e; 
+  background-color: #22c55e;
 }
 
 input:checked ~ span:last-child {
-  --tw-translate-x: 1.75rem; 
+  --tw-translate-x: 1.75rem;
 }
 
 /* Define the keyframes for the glow effects */
 @keyframes glow1 {
-  0%, 100% {
-    box-shadow: 
-      0 -10px 90px 10px rgba(235, 209, 9, 0.3),  /* Top */
-      -10px 0 90px 10px rgba(235, 209, 9, 0.3), /* Left */
-      0 10px 90px 10px rgba(235, 209, 9, 0.3);  /* Bottom */
+  0%,
+  100% {
+    box-shadow: 0 -10px 90px 10px rgba(235, 209, 9, 0.3),
+      /* Top */ -10px 0 90px 10px rgba(235, 209, 9, 0.3),
+      /* Left */ 0 10px 90px 10px rgba(235, 209, 9, 0.3); /* Bottom */
   }
   25% {
-    box-shadow: 
-      0 -10px 90px 10px rgba(213, 223, 66, 0.2),
+    box-shadow: 0 -10px 90px 10px rgba(213, 223, 66, 0.2),
       -10px 0 90px 10px rgba(213, 223, 66, 0.2),
       0 10px 90px 10px rgba(213, 223, 66, 0.2);
   }
   50% {
-    box-shadow: 
-      0 -10px 90px 10px rgba(225, 238, 120, 0.1),
+    box-shadow: 0 -10px 90px 10px rgba(225, 238, 120, 0.1),
       -10px 0 90px 10px rgba(225, 238, 120, 0.1),
       0 10px 90px 10px rgba(225, 238, 120, 0.1);
   }
   75% {
-    box-shadow: 
-      0 -10px 90px 10px rgba(220, 232, 6, 0.2),
+    box-shadow: 0 -10px 90px 10px rgba(220, 232, 6, 0.2),
       -10px 0 90px 10px rgba(220, 232, 6, 0.2),
       0 10px 90px 10px rgba(220, 232, 6, 0.2);
   }
 }
 
 @keyframes glow2 {
-  0%, 100% {
-    box-shadow: 
-      0 -20px 95px 25px rgb(0, 0, 255, 0.4),  /* Top */
-      0 20px 95px 25px rgb(0, 0, 255, 0.4);  /* Bottom */
+  0%,
+  100% {
+    box-shadow: 0 -20px 95px 25px rgb(0, 0, 255, 0.4),
+      /* Top */ 0 20px 95px 25px rgb(0, 0, 255, 0.4); /* Bottom */
   }
   25% {
-    box-shadow: 
-      0 -20px 95px 25px rgb(0, 0, 200, 0.5),
+    box-shadow: 0 -20px 95px 25px rgb(0, 0, 200, 0.5),
       0 20px 95px 25px rgb(0, 0, 200, 0.5);
   }
   50% {
-    box-shadow: 
-      0 -20px 95px 25px rgb(0, 0, 170, 0.4),
+    box-shadow: 0 -20px 95px 25px rgb(0, 0, 170, 0.4),
       0 20px 95px 25px rgb(0, 0, 170, 0.4);
   }
   75% {
-    box-shadow: 
-      0 -20px 95px 25px rgb(0, 0, 80, 0.3),
+    box-shadow: 0 -20px 95px 25px rgb(0, 0, 80, 0.3),
       0 20px 95px 25px rgb(0, 0, 80, 0.3);
   }
 }
 
 @keyframes glow3 {
-  0%, 100% {
-    box-shadow: 
-      0 -5px 20px 5px rgba(0, 0, 255, 0.2),  /* Top */
-      10px 0 20px 5px rgba(0, 0, 255, 0.2),  /* Right */
-      0 5px 20px 5px rgba(0, 0, 255, 0.2);  /* Bottom */
+  0%,
+  100% {
+    box-shadow: 0 -5px 20px 5px rgba(0, 0, 255, 0.2),
+      /* Top */ 10px 0 20px 5px rgba(0, 0, 255, 0.2),
+      /* Right */ 0 5px 20px 5px rgba(0, 0, 255, 0.2); /* Bottom */
   }
   25% {
-    box-shadow: 
-      0 -5px 20px 5px rgba(0, 0, 200, 0.3),
-      10px 0 20px 5px rgba(0, 0, 200, 0.3),
-      0 5px 20px 5px rgba(0, 0, 200, 0.3);
+    box-shadow: 0 -5px 20px 5px rgba(0, 0, 200, 0.3),
+      10px 0 20px 5px rgba(0, 0, 200, 0.3), 0 5px 20px 5px rgba(0, 0, 200, 0.3);
   }
   50% {
-    box-shadow: 
-      0 -5px 20px 5px rgba(0, 0, 170, 0.2),
-      10px 0 20px 5px rgba(0, 0, 170, 0.2),
-      0 5px 20px 5px rgba(0, 0, 170, 0.2);
+    box-shadow: 0 -5px 20px 5px rgba(0, 0, 170, 0.2),
+      10px 0 20px 5px rgba(0, 0, 170, 0.2), 0 5px 20px 5px rgba(0, 0, 170, 0.2);
   }
   75% {
-    box-shadow: 
-      0 -5px 20px 5px rgba(0, 0, 130, 0.15),
+    box-shadow: 0 -5px 20px 5px rgba(0, 0, 130, 0.15),
       10px 0 20px 5px rgba(0, 0, 130, 0.15),
       0 5px 20px 5px rgba(0, 0, 130, 0.15);
   }
@@ -211,44 +191,47 @@ input:checked ~ span:last-child {
   animation: glow3 5s infinite;
 }
 
-
 /* text glow animation */
 @keyframes glow {
-    0% {
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 255, 255, 0.5);
-    }
-    50% {
-      text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.7), 0 0 40px rgba(255, 255, 255, 0.6), 0 0 50px rgba(255, 255, 255, 0.5);
-    }
-    100% {
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 255, 255, 0.5);
-    }
+  0% {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+      0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.6),
+      0 0 40px rgba(255, 255, 255, 0.5);
   }
-
-  .glowing-text {
-    animation: glow 2s infinite alternate;
+  50% {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8),
+      0 0 30px rgba(255, 255, 255, 0.7), 0 0 40px rgba(255, 255, 255, 0.6),
+      0 0 50px rgba(255, 255, 255, 0.5);
   }
+  100% {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+      0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.6),
+      0 0 40px rgba(255, 255, 255, 0.5);
+  }
+}
 
+.glowing-text {
+  animation: glow 2s infinite alternate;
+}
 
-  /* add animation on scroll in */
+/* add animation on scroll in */
 
-  .scroll-fade {
-    opacity: 0;
-    transform: translateY(30px);  /* Move the element slightly down initially */
-    transition: opacity 1.4s ease, transform 1.4s ease;
+.scroll-fade {
+  opacity: 0;
+  transform: translateY(30px); /* Move the element slightly down initially */
+  transition: opacity 1.4s ease, transform 1.4s ease;
 }
 
 /* Animation applied when the element is in view */
 .scroll-fade.visible {
-    opacity: 1;
-    transform: translateY(0);  /* Move the element to its original position */
+  opacity: 1;
+  transform: translateY(0); /* Move the element to its original position */
 }
-
 
 /* slide in from right */
 @keyframes slideInRight {
   0% {
-    transform: translateX(100%);  /* Start off-screen to the right */
+    transform: translateX(100%); /* Start off-screen to the right */
     opacity: 0;
   }
   100% {
@@ -261,11 +244,10 @@ input:checked ~ span:last-child {
   animation: slideInRight 1s ease-out forwards;
 }
 
-
 /* diagonal fade in animation */
 @keyframes diagonalFadeIn {
   0% {
-    transform: translate(50%, 50%);  /* Start off from a lower right position */
+    transform: translate(50%, 50%); /* Start off from a lower right position */
     opacity: 0;
   }
   100% {
@@ -290,18 +272,19 @@ input:checked ~ span:last-child {
 
 @layer utilities {
   .text-glow {
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.2), 0 0 15px rgba(255, 255, 255, 0.1);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3),
+      0 0 10px rgba(255, 255, 255, 0.2), 0 0 15px rgba(255, 255, 255, 0.1);
   }
 }
 
 @keyframes growEffect {
   0% {
-    transform: scale(0.8);  /* Start smaller */
-    opacity: 0;  /* Initially hidden */
+    transform: scale(0.8); /* Start smaller */
+    opacity: 0; /* Initially hidden */
   }
   100% {
-    transform: scale(1);  /* End at original size */
-    opacity: 1;  /* Fully visible */
+    transform: scale(1); /* End at original size */
+    opacity: 1; /* Fully visible */
   }
 }
 
@@ -319,7 +302,7 @@ input:checked ~ span:last-child {
   50% {
     opacity: 1;
   }
-  75%{
+  75% {
     opacity: 0.3;
   }
   100% {
@@ -339,12 +322,12 @@ input:checked ~ span:last-child {
 
 @keyframes growEffect2 {
   0% {
-    transform: scale(0.8);  /* Start smaller */
-    opacity: 0;  /* Initially hidden */
+    transform: scale(0.8); /* Start smaller */
+    opacity: 0; /* Initially hidden */
   }
   100% {
-    transform: scale(1);  /* End at original size */
-    opacity: 1;  /* Fully visible */
+    transform: scale(1); /* End at original size */
+    opacity: 1; /* Fully visible */
   }
 }
 
@@ -353,42 +336,40 @@ input:checked ~ span:last-child {
   animation: growEffect2 1s ease-out forwards; /* Duration: 0.5s, easing: ease-out */
 }
 
-
 /* autopairing page animation */
 /* Loader Animation */
 .loader {
   width: 60px;
   aspect-ratio: 4; /* Ensures a 4:1 width-to-height ratio */
-  background: radial-gradient(circle closest-side, white 90%, transparent) 0/calc(100%/3) 100% space;
+  background: radial-gradient(circle closest-side, white 90%, transparent) 0 /
+    calc(100% / 3) 100% space;
   clip-path: inset(0 100% 0 0);
   animation: l1 1s steps(4) infinite;
 }
 
 @keyframes l1 {
   to {
-    clip-path: inset(0 -34% 0 0); /* Expands the clip path to reveal the dots progressively */
+    clip-path: inset(
+      0 -34% 0 0
+    ); /* Expands the clip path to reveal the dots progressively */
   }
 }
-
 
 /* terminal box and bstartgame glow effect */
 @keyframes glow {
   0% {
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.4),
-      0 0 20px rgba(255, 255, 255, 0.3),
-      0 0 25px rgba(255, 255, 255, 0.2),
+      0 0 20px rgba(255, 255, 255, 0.3), 0 0 25px rgba(255, 255, 255, 0.2),
       0 0 30px rgba(255, 255, 255, 0.1);
   }
   50% {
     box-shadow: 0 0 25px rgba(255, 255, 255, 0.5),
-      0 0 30px rgba(255, 255, 255, 0.4),
-      0 0 35px rgba(255, 255, 255, 0.3),
+      0 0 30px rgba(255, 255, 255, 0.4), 0 0 35px rgba(255, 255, 255, 0.3),
       0 0 40px rgba(255, 255, 255, 0.2);
   }
   100% {
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.4),
-      0 0 20px rgba(255, 255, 255, 0.3),
-      0 0 25px rgba(255, 255, 255, 0.2),
+      0 0 20px rgba(255, 255, 255, 0.3), 0 0 25px rgba(255, 255, 255, 0.2),
       0 0 30px rgba(255, 255, 255, 0.1);
   }
 }
