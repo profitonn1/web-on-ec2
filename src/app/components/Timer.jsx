@@ -1,37 +1,37 @@
-"use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-const Timer = () => {
-  // Initializing the time remaining in seconds (20 minutes)
-  const [timeRemaining, setTimeRemaining] = useState(15 * 60);
+const Timer = ({ startTime, onTimeEnd }) => {
+  const [timeLeft, setTimeLeft] = useState(15 * 60); // Timer duration in seconds (15 minutes)
 
   useEffect(() => {
-    // Exit early if the timer reaches zero
-    if (timeRemaining === 0) return;
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const gameStart = new Date(startTime).getTime();
+      const elapsedTime = Math.floor((now - gameStart) / 1000); // Time elapsed in seconds
+      const remainingTime = Math.max(1 * 60 - elapsedTime, 0); // Ensure no negative time
+      setTimeLeft(remainingTime);
 
-    // Set up an interval to update the timer every second
-    const interval = setInterval(() => {
-      setTimeRemaining((prevTime) => prevTime - 1);
-    }, 1000);
+      if (remainingTime === 0) {
+        onTimeEnd(); // Notify parent when the timer reaches zero
+      }
+    };
 
-    // Cleanup interval when component is unmounted or timer reaches zero
-    return () => clearInterval(interval);
-  }, [timeRemaining]); // Re-run when timeRemaining changes
+    calculateTimeLeft(); // Initial calculation
+    const interval = setInterval(calculateTimeLeft, 1000); // Update every second
 
-  // Format the time into minutes and seconds
-  const minutes = Math.floor(timeRemaining / 60);
-  const seconds = timeRemaining % 60;
+    return () => clearInterval(interval); // Cleanup interval on component unmount
+  }, [startTime, onTimeEnd]);
 
-  // Render the timer and "Time's up!" message when the timer ends
+  // Format time as MM:SS
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  };
+
   return (
-    <div className='text-4xl p-2'>
-      {timeRemaining > 0 ? (
-        <h1>
-          {minutes}:{seconds < 10 ? '0' : ''}{seconds}
-        </h1>
-      ) : (
-        <h1>Time&apos;s up!</h1>
-      )}
+    <div style={{ textAlign: "center", fontSize: "40px", fontWeight: "bold", color: "white" }}>
+      {formatTime(timeLeft)}
     </div>
   );
 };

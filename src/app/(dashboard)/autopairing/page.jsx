@@ -19,6 +19,7 @@ export default function Autopairing() {
     winrate: "",
     ranking: "",
     oppDemoBalance:0,
+    startTime:"",
   });
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -178,7 +179,7 @@ export default function Autopairing() {
   
           // Handle successful responses
           if (postresponse.status === 201 || postresponse.status === 200) {
-            const { oppname, winrate, ranking } = postresponse.data;
+            const { oppname, winrate, ranking ,startTime} = postresponse.data;
   
             // Update state with the response
             setOppData({ oppname, winrate, ranking });

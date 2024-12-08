@@ -369,7 +369,7 @@ export default function Bstartgame() {
                         onClick={tooglePopUp}
                       >
                         {/* Background overlay with reduced opacity */}
-                        <div className="fixed inset-0 bg-black bg-opacity-50" />
+                        <div className="fixed inset-0 bg-black bg-opacity-60" />
 
                         {/* Popup Content */}
                         <div
@@ -419,33 +419,6 @@ export default function Bstartgame() {
                             </button>
                           </div>
                         </div>
-                        <style jsx>{`
-                          @keyframes glow {
-                            0% {
-                              box-shadow: 0 0 15px rgba(255, 255, 255, 0.4),
-                                0 0 20px rgba(255, 255, 255, 0.3),
-                                0 0 25px rgba(255, 255, 255, 0.2),
-                                0 0 30px rgba(255, 255, 255, 0.1);
-                            }
-                            50% {
-                              box-shadow: 0 0 25px rgba(255, 255, 255, 0.5),
-                                0 0 30px rgba(255, 255, 255, 0.4),
-                                0 0 35px rgba(255, 255, 255, 0.3),
-                                0 0 40px rgba(255, 255, 255, 0.2);
-                            }
-                            100% {
-                              box-shadow: 0 0 15px rgba(255, 255, 255, 0.4),
-                                0 0 20px rgba(255, 255, 255, 0.3),
-                                0 0 25px rgba(255, 255, 255, 0.2),
-                                0 0 30px rgba(255, 255, 255, 0.1);
-                            }
-                          }
-
-                          .glow-effect {
-                            animation: glow 1.5s infinite alternate;
-                            border-radius: 12px;
-                          }
-                        `}</style>
                       </div>
                     )}
                     {showAlert && (
