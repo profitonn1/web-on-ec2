@@ -1,5 +1,3 @@
-// app/api/signup/route.js
-
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
@@ -9,6 +7,7 @@ const prisma = new PrismaClient();
 export async function POST(request) {
   try {
     const { username, mobile, password, email } = await request.json();
+    console.log("Received data:", { username, mobile, password, email }); // Add this log
 
     // Validate input data
     if (!username || !email || !password || !mobile) {
@@ -45,7 +44,7 @@ export async function POST(request) {
         data: {
           nooftimespaired: "0",
           averageroc: "0",
-          balanceINR: "0",
+          balanceINR: 0,
           authorId: newUser.id,
           winRate: "0/0",
           Ranking: "Null",
@@ -55,7 +54,11 @@ export async function POST(request) {
 
     return NextResponse.json({ msg: "Signup success" });
   } catch (e) {
-    console.error("Signup error:", e);
+    if (e instanceof Error) {
+      console.error("Signup error:", e.message); // Ensure to log message if it's an Error instance
+    } else {
+      console.error("Signup error:", e); // Log as generic error if it's not an Error instance
+    }
     return NextResponse.json({ msg: "Signup failed" }, { status: 500 });
   } finally {
     await prisma.$disconnect(); // Ensure disconnection in finally block

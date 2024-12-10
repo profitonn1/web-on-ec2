@@ -1,4 +1,0 @@
--- AlterTable
-ALTER TABLE `TotalAutomaticHistory` ADD COLUMN `endTime` DATETIME(3) NULL,
-    ADD COLUMN `startTime` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    ADD COLUMN `status` VARCHAR(191) NOT NULL DEFAULT 'ongoing';

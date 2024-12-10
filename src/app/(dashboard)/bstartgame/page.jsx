@@ -228,6 +228,8 @@ export default function Bstartgame() {
       const selectedAmount = parseInt(selectedItem);
       const balance = parseInt(userDetails?.balance);
       const newBalance = balance - selectedAmount;
+
+      console.log(typeof(newBalance))
   
       if (isNaN(balance)) {
         alert("Unable to retrieve balance.");
@@ -265,6 +267,8 @@ export default function Bstartgame() {
         body: JSON.stringify({
           id: parsedUserDetails.id,
           newBalance,
+          amount:String(selectedAmount),
+          category:"beginner"
         }),
       });
   
@@ -272,12 +276,12 @@ export default function Bstartgame() {
         throw new Error("Failed to update balance");
       }
   
-      // Set the amount in the database
-      await axios.post("/api/game/setamount", {
-        userId: parsedUserDetails.id,
-        username: parsedUserDetails.username,
-        amount: String(selectedAmount),
-      });
+      // // Set the amount in the database
+      // await axios.post("/api/game/setamount", {
+      //   userId: parsedUserDetails.id,
+      //   username: parsedUserDetails.username,
+      //   amount: String(selectedAmount),
+      // });
   
   
       router.push(`/autopairing?amount=${encodeURIComponent(selectedAmount)}`);

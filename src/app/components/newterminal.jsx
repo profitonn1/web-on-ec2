@@ -8,8 +8,11 @@ import axios from "axios";
 import Timer from "./Timer";
 import { useRef } from "react";
 import Cookies from "js-cookie";
+import { toNumber } from "lodash";
+import { useRouter } from "next/navigation";
 
 export default function Terminal() {
+  const router = useRouter();
   const { tradeData } = useTradeData();
   const latestTradeData = tradeData[0];
   const [activeButton, setActiveButton] = useState(null);
@@ -51,7 +54,12 @@ export default function Terminal() {
   const [chartHeight, setChartHeight] = useState(80); // Set initial height to 80vh
   const [isDynamicHigher, setIsDynamicHigher] = useState(true);
   const [isSlidingUp, setIsSlidingUp] = useState(false);
-
+  const [gameId, setGameId] = useState("");
+  const [gameCategory, setGameCategory] = useState("");
+  const [amount, setAmount] = useState("");
+  const [confirmGameOver, setConfirmGameOver] = useState(false);
+  const isGameOverHandled = useRef(false);
+  const isInitialLoad = useRef(true);
   const chartRef = useRef(null); // Reference for the chart component
   const resizingRef = useRef(false); // Flag for resizing status
   const lastY = useRef(0); // Store last Y position of mouse during drag
@@ -62,6 +70,17 @@ export default function Terminal() {
     ranking: "",
     oppDemoBalance: 0,
   });
+
+  //fetchin gameId and gameCategory from url
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paramGameId = params.get("gameId");
+    const gameCategory = params.get("category");
+    const paramAmount = params.get("amount");
+    setAmount(paramAmount); // Sets the amount from the URL query
+    setGameId(paramGameId);
+    setGameCategory(gameCategory);
+  }, [window.location.search]);
 
   //For changing the divs of user and opponent's Balance
   useEffect(() => {
@@ -515,68 +534,60 @@ export default function Terminal() {
   }, [symbolPrice, openTrades, allProfit]);
 
   //function to close the trades
+
   const closeTradeFunc = async (tradeId, profitOrLoss) => {
     try {
-      // Check for invalid values
+      // Validate profitOrLoss as a number
       if (
         profitOrLoss === undefined ||
         profitOrLoss === null ||
-        isNaN(profitOrLoss) ||
-        !symbolPrice || // Ensure symbolPrice is valid
-        symbolPrice <= 0
+        isNaN(profitOrLoss)
       ) {
-        console.warn(
-          "Invalid data passed to closeTradeFunc. Skipping trade closure."
-        );
         return;
       }
 
+      // Prepare parameters for API request
       const params = {
         tradeId,
         userId: parsedUserDetails.id,
         username: parsedUserDetails.username,
-        profitOrLoss: parseFloat(profitOrLoss),
-        closingPrice: symbolPrice, // Use current symbolPrice
+        profitOrLoss: parseFloat(profitOrLoss), // Ensure it's a number
+        closingPrice: symbolPrice,
       };
 
+      // Validate required parameters
       if (
         !params.tradeId ||
         !params.userId ||
         !params.username ||
         isNaN(params.profitOrLoss)
       ) {
-        console.warn("Invalid params for closeTradeFunc:", params);
         return;
       }
 
-      // Optimistically update state before API call
-      setTrades((prevTrades) =>
-        prevTrades.map((trade) =>
-          trade.id === tradeId
-            ? {
-                ...trade,
-                profitOrLoss,
-                closingPrice: symbolPrice,
-                closingTime: new Date(),
-              }
-            : trade
-        )
-      );
-
-      // Persist trade closure on the backend
+      // API call to close trade
       const closetradeResponse = await axios.post("/api/closeTrade", {
         params,
       });
 
       if (closetradeResponse.status >= 200 && closetradeResponse.status < 300) {
+        // Trigger UI update for closed trade
         setisTradeClosed((prev) => !prev);
 
-        // Update closed trades state
+        // Update trades
+        setTrades((prevTrades) =>
+          prevTrades.map((trade) =>
+            trade.id === tradeId
+              ? { ...trade, profitOrLoss, closingTime: new Date() }
+              : trade
+          )
+        );
+
+        // Update closedTrades after updating trades
         setclosedTrades((prevTrades) =>
           prevTrades.filter((trade) => trade.closingTime !== null)
         );
 
-        // Update the user's balance
         updateBalance();
       }
     } catch (error) {
@@ -588,80 +599,148 @@ export default function Terminal() {
   };
 
   useEffect(() => {
-    if (isGameOver === true && oppData) {
-      // Check if the cookie already exists before setting it
-      const existingBalance = Cookies.get("opponentBalance");
-      setOpponentBalance(existingBalance);
-
-      if (!existingBalance) {
-        // Set the cookie to expire in 2 minutes only if it's not already set
-        const twoMinutesFromNow = new Date(
-          new Date().getTime() + 60 * 60 * 1000
-        ); // 2 minutes from now
-        Cookies.set("opponentBalance", opponentBalance, {
-          expires: twoMinutesFromNow,
-        });
-      }
-
-      const closeAllTrades = async () => {
-        trades.forEach((trade) => {
-          const profitData = allProfit.find((profit) => profit.id === trade.id);
-          const profitOrLoss = profitData ? profitData.profit.toFixed(3) : 0;
-          closeTradeFunc(trade.id, profitOrLoss); // Close each trade
-        });
-
-        await axios.post("/api/game/afterGameWalletBalanceUpdate", {
-          params: {
-            username: parsedUserDetails.username,
-            oppname: oppData.oppname,
-          },
-        });
-        setShowAfterMatchPopup(true); // Show the after-match popup
-
-      };
-
-      if (trades.length > 0) {
-        closeAllTrades(); // Call the function to close all trades
-      }
+    const savedOpponentBalance = Cookies.get("opponentBalance");
+    if (!opponentBalance && savedOpponentBalance) {
+      setOpponentBalance(Number(savedOpponentBalance));
     }
-  }, [isGameOver]);
+  }, []);
+
+  // useEffect(() => {
+  //   if (isGameOver && oppData && !isGameOverHandled.current) {
+  //     isGameOverHandled.current = true;
+
+  //     const handleGameOver = async () => {
+  //       try {
+  //         console.log(openTrades.length),
+  //             openTrades.map(async (trade) => {
+  //               const profitData = allProfit.find(
+  //                 (profit) => profit.id === trade.id
+  //               );
+  //               const profitOrLoss = profitData
+  //                 ? profitData.profit.toFixed(3)
+  //                 : 0;
+  //               await closeTradeFunc(trade.id, profitOrLoss);
+  //             })
+
+  //         const savedOpponentBalance = Cookies.get("opponentBalance");
+  //         if (!savedOpponentBalance) {
+  //           const oneHourFromNow = new Date(
+  //             new Date().getTime() + 60 * 60 * 1000
+  //           );
+  //           Cookies.set("opponentBalance", opponentBalance, {
+  //             expires: oneHourFromNow,
+  //           });
+  //           setOpponentBalance(opponentBalance);
+  //         }
+
+  //         if (dynamicBalance !== null && opponentBalance !== null) {
+  //           const paramAmount = toNumber(amount);
+  //           const balance =
+  //             dynamicBalance > opponentBalance
+  //               ? paramAmount + 0.7 * paramAmount
+  //               : 0;
+
+  //           const [first, second] =
+  //             dynamicBalance > opponentBalance
+  //               ? [parsedUserDetails.username, oppData.oppname]
+  //               : [oppData.oppname, parsedUserDetails.username];
+
+  //           await axios.post("/api/game/afterGameWalletBalanceUpdate", {
+  //             gameId,
+  //             first,
+  //             second,
+  //             balance,
+  //             username: parsedUserDetails.username,
+  //           });
+
+  //           console.log("After game balance update successful.");
+  //           setShowAfterMatchPopup(true);
+  //         }
+  //       } catch (error) {
+  //         console.error("Error during game over process:", error.message);
+  //       }
+  //     };
+
+  //     handleGameOver();
+  //   }
+  // }, [isGameOver,isTradeActive,isTradeClosed]);
 
   useEffect(() => {
-    if (openTrades.length !== 0) {
+    if (isGameOver && oppData && !isGameOverHandled.current) {
+      isGameOverHandled.current = true;
+  
+      const handleGameOver = async () => {
+        try {
+          console.log(openTrades.length);
+          
+          // Use forEach instead of map for side-effect logic
+          openTrades.forEach((trade) => {
+            const profitData = allProfit.find(
+              (profit) => profit.id === trade.id
+            );
+            const profitOrLoss = profitData
+              ? profitData.profit.toFixed(3)
+              : 0;
+            closeTradeFunc(trade.id, profitOrLoss); // No await, just fire and forget
+          });
+  
+          const savedOpponentBalance = Cookies.get("opponentBalance");
+          if (!savedOpponentBalance) {
+            const oneHourFromNow = new Date(
+              new Date().getTime() + 60 * 60 * 1000
+            );
+            Cookies.set("opponentBalance", opponentBalance, {
+              expires: oneHourFromNow,
+            });
+            setOpponentBalance(opponentBalance);
+          }
+  
+          if (dynamicBalance !== null && opponentBalance !== null) {
+            const paramAmount = toNumber(amount);
+            const balance =
+              dynamicBalance > opponentBalance
+                ? paramAmount + 0.7 * paramAmount
+                : 0;
+  
+            const [first, second] =
+              dynamicBalance > opponentBalance
+                ? [parsedUserDetails.username, oppData.oppname]
+                : [oppData.oppname, parsedUserDetails.username];
+  
+            await axios.post("/api/game/afterGameWalletBalanceUpdate", {
+              gameId,
+              first,
+              second,
+              balance,
+              username: parsedUserDetails.username,
+            });
+  
+            console.log("After game balance update successful.");
+            setShowAfterMatchPopup(true);
+          }
+        } catch (error) {
+          console.error("Error during game over process:", error.message);
+        }
+      };
+  
+      handleGameOver();
+    }
+  }, [isGameOver ,isTradeActive,isTradeClosed]);
+  
+
+  //Delete opponent Data from Cookie after the match gets over
+  useEffect(() => {
+    if (confirmGameOver === true) {
+      Cookies.remove("opponentBalance");
+      Cookies.remove("oppData");
+    }
+  }, [confirmGameOver]);
+
+  useEffect(() => {
+    if (openTrades.length !== 0 && gameCategory !== "demoTrade") {
       updateBalance();
     }
   }, [symbolPrice]);
-
-  // Log updates after state changes
-
-  //   setclosedTrades((prevClosedTrades) =>
-  //     prevClosedTrades.map((trade) =>
-  //       trade.id === tradeId
-  //         ? { ...trade, profitOrLoss, closingTime: new Date() }
-  //         : trade
-  //     )
-  //   );
-
-  // const newClosedTrades = trades.filter((trade) => trade.closingTime !==null);
-  // setclosedTrades(newClosedTrades);
-
-  // dynamicBalanceRef.current = parseFloat(dynamicBalanceRef.current + profitOrLoss).toFixed(2);
-  // setDynamicBalance(parseFloat(dynamicBalanceRef.current));
-
-  // Recalculate balance after trade closure
-  // updateBalanceAfterTradeClose();
-  // Function to update the balance after trade closure
-  // const updateBalanceAfterTradeClose = () => {
-  //   let totalProfitOrLoss = 0;
-  //   allProfit.forEach(profit => {
-  //     totalProfitOrLoss += profit.profit;
-  //   });
-
-  //   setDynamicBalance((prevBalance) => {
-  //     const newBalance = demoBalance + totalProfitOrLoss;
-  //     return parseFloat(newBalance.toFixed(2));
-  //   });
-  // };
 
   useEffect(() => {
     let totalProfitOrLoss = 0;
@@ -702,27 +781,10 @@ export default function Terminal() {
         sum += parseFloat(closedTrades[i].profitOrLoss);
       }
 
-      // If the length has changed (increased or decreased)
-      if (
-        currentLength !== previousLengthRef.current &&
-        previousLengthRef.current !== 0
-      ) {
-        // Update the balance considering closed trades' profit or loss
-        setDynamicBalance(() => {
-          const newBalance = demoBalance + totalProfitOrLoss + sum;
-          previousLengthRef.current = currentLength; // Update the previous length
-          console.log(dynamicBalance)
-          return parseFloat(newBalance.toFixed(3)); // Set new balance
-
-        });
-      } else {
-        // If the length hasn't changed, only update balance for open trades
-        setDynamicBalance(() => {
-          const newBalance = demoBalance + totalProfitOrLoss;
-          console.log(dynamicBalance)
-          return parseFloat(newBalance.toFixed(3)); // Set new balance
-        });
-      }
+      setDynamicBalance(() => {
+        const newBalance = demoBalance + totalProfitOrLoss;
+        return parseFloat(newBalance.toFixed(3)); // Set new balance
+      });
     }
   }, [symbolPrice, trades, closedTrades, demoBalance]);
 
@@ -740,7 +802,8 @@ export default function Terminal() {
       (trade) => trade.closingTime !== null && trade.pending === false
     );
     setclosedTrades(newClosedTrades);
-  }, [isTradeClosed, trades, isTradeActive]);
+    console.log(closedTrades);
+  }, [isTradeClosed, trades, isTradeActive, openTrades]);
 
   useEffect(() => {
     // Update pending trades
@@ -756,50 +819,47 @@ export default function Terminal() {
         console.warn("Initial fixed balance is not set. Skipping update.");
         return;
       }
-
+      console.log(closedTrades);
       let sum = 0;
-
-      // Add profit or loss from closed trades
-      for (let i = 0; i < closedTrades.length; i++) {
-        sum += parseFloat(closedTrades[i].profitOrLoss);
+      if (closedTrades && closedTrades.length > 0) {
+        closedTrades.forEach((trade, i) => {
+          const tradeProfitOrLoss = parseFloat(trade.profitOrLoss);
+          if (!isNaN(tradeProfitOrLoss)) {
+            sum += tradeProfitOrLoss;
+          } else {
+            console.warn(`Invalid profitOrLoss for trade ${i}:`, trade);
+          }
+        });
+      } else {
+        console.log("No closed trades. Using initial fixed balance only.");
       }
 
-      // Calculate the total dynamic balance
       const balance = initialFixedBalance + sum + currentTotalProfitOrLoss;
 
-      if (balance === null || isNaN(balance)) {
-        console.warn("Invalid balance calculation. Skipping update.");
-        return;
+      if (balance !== null && !isNaN(balance)) {
+        await axios.post("/api/changeDemoBalance", {
+          demoBalance: balance,
+          username: parsedUserDetails.username,
+          userId: parsedUserDetails.id,
+        });
+
+        console.log("Demo Balance:", balance);
+      } else {
+        console.warn("Invalid balance calculation.");
       }
-
-      // Updating the balance on the server
-      await axios.post("/api/changeDemoBalance", {
-        demoBalance: balance, // Send the correct dynamic balance
-        username: parsedUserDetails.username,
-        userId: parsedUserDetails.id,
-      });
-
       setDemoBalance(initialFixedBalance + sum);
-      console.log(demoBalance,'demoBalance')
-
-      // // Fetching the updated balance from the server
-      // const getDemoBalance = await axios.get("/api/changeDemoBalance", {
-      //   params: { username: parsedUserDetails.username },
-      // });
-
-      // if (getDemoBalance.status === 200) {
-      //   const updatedBalance = getDemoBalance.data.demoBalance;
-      //   // setDynamicBalance(updatedBalance);
-      //   setDemoBalance(initialFixedBalance + sum);
-      // } else {
-      //   console.error("Failed to fetch updated balance. Status:", getDemoBalance.status);
-      // }
     } catch (error) {
       console.error("Error updating demo balance:", error);
     }
   };
 
-  // Helper function to get the current market price
+  useEffect(() => {
+    // Subsequent updates
+    if (initialFixedBalance !== null && !isNaN(initialFixedBalance)) {
+      updateBalance();
+    }
+  }, [closedTrades, trades, initialFixedBalance]);
+
   const getCurrentMarketPrice = async (symbol) => {
     try {
       const response = await axios.get(`/api/marketPrice`, {
@@ -845,12 +905,6 @@ export default function Terminal() {
 
     getInitialDemoBalance();
   }, []); // Run only on component mount
-
-  useEffect(() => {
-    if (initialFixedBalance !== null && !isNaN(initialFixedBalance)) {
-      updateBalance();
-    }
-  }, [closedTrades, trades, initialFixedBalance]); // Ensure all dependencies are accounted for
 
   // useEffect(() => {\
 
@@ -910,29 +964,29 @@ export default function Terminal() {
 
       {/* Popup after the match is over */}
       {isGameOver && (
-        <div className="fixed inset-0 bg-black bg-opacity-50  flex items-center justify-center">
-          <div className="relative w-11/12 max-w-lg bg-gradient-to-b from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-8 glow-effect">
-            <h1 className="mb-6 font-mono text-center text-4xl text-white tracking-widest animate-pulse">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="relative w-11/12 max-w-lg bg-gradient-to-b from-gray-900 via-gray-800 to-black rounded-3xl shadow-xl p-6 glow-effect">
+            <h1 className="mb-4 font-mono text-center text-3xl text-white font-semibold tracking-widest">
               Game Results
             </h1>
 
-            <div className="flex justify-between items-center mb-8 px-6">
+            <div className="flex justify-between items-center mb-6 px-4">
               {/* Player Balance */}
               <div className="text-center">
-                <div className="text-gray-400 text-lg font-light">
+                <div className="text-gray-400 text-sm font-light">
                   Your Balance
                 </div>
-                <div className="font-bold font-mono text-3xl text-green-400 mt-2">
+                <div className="font-bold font-mono text-xl text-green-400 mt-2">
                   {dynamicBalance !== null ? dynamicBalance.toFixed(3) : "--"}
                 </div>
               </div>
 
               {/* Opponent Balance */}
               <div className="text-center">
-                <div className="text-gray-400 text-lg font-light">
+                <div className="text-gray-400 text-sm font-light">
                   {oppData.oppname || "Opponent"}&apos;s Balance
                 </div>
-                <div className="font-bold font-mono text-3xl text-red-400 mt-2">
+                <div className="font-bold font-mono text-xl text-red-400 mt-2">
                   {opponentBalance !== null && !isNaN(opponentBalance)
                     ? Number(opponentBalance).toFixed(3)
                     : "--"}
@@ -941,48 +995,67 @@ export default function Terminal() {
             </div>
 
             {/* Outcome Section */}
-            <div className="text-center text-white mb-8">
-              {dynamicBalance > opponentBalance && symbolPrice !== null ? (
+            <div className="text-center text-white mb-6">
+              {dynamicBalance > opponentBalance &&
+              symbolPrice !== null &&
+              dynamicBalance !== 0 ? (
                 <div>
-                  <p className="text-green-500 text-2xl font-bold mb-2 animate-bounce">
+                  <p className="text-green-500 text-xl font-semibold mb-2">
                     🎉 Victory!
                   </p>
-                  <p className="text-gray-300">
+                  <p className="text-gray-300 text-sm">
                     You won by {(dynamicBalance - opponentBalance).toFixed(3)}!
                   </p>
-                  <p className="text-gray-400 text-sm mt-1">
+                  <p className="text-gray-400 text-xs mt-1">
                     ₹80 has been transferred to your wallet.
                   </p>
                 </div>
-              ) : dynamicBalance < opponentBalance && symbolPrice !== null ? (
+              ) : dynamicBalance < opponentBalance &&
+                symbolPrice !== null &&
+                dynamicBalance !== 0 ? (
                 <div>
-                  <p className="text-red-500 text-2xl font-bold mb-2">
+                  <p className="text-red-500 text-xl font-semibold mb-2">
                     😢 You Just Missed
                   </p>
-                  <p className="text-gray-300">Better luck next time!</p>
+                  <p className="text-gray-300 text-sm">
+                    Better luck next time!
+                  </p>
                 </div>
               ) : Math.abs(dynamicBalance - opponentBalance) < 0.0001 &&
-                symbolPrice !== null ? (
+                symbolPrice !== null &&
+                dynamicBalance !== 0 ? (
                 <div>
-                  <p className="text-yellow-400 text-2xl font-bold mb-2">
+                  <p className="text-yellow-400 text-xl font-semibold mb-2">
                     🤝 It&apos;s a Tie!
                   </p>
-                  <p className="text-gray-300">No winners this time.</p>
+                  <p className="text-gray-300 text-sm">No winners this time.</p>
                 </div>
               ) : (
-                <p className="text-yellow-400 text-xl font-medium animate-pulse">
+                <p className="text-yellow-400 text-lg font-medium animate-pulse">
                   Fetching results...
                 </p>
               )}
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-center gap-8">
-              <button className="w-[40%] font-mono text-lg font-bold transition duration-300 ease-in-out transform hover:scale-110 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white py-3 rounded-full shadow-lg hover:shadow-none">
-                New Game
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => {
+                  router.push("/bstartgame");
+                  setConfirmGameOver(true);
+                }}
+                className="w-[45%] font-mono text-lg font-semibold transition duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white py-3 rounded-lg shadow-md hover:shadow-lg"
+              >
+                Continue
               </button>
 
-              <button className="w-[40%] font-mono text-lg font-bold transition duration-300 ease-in-out transform hover:scale-110 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full shadow-lg">
+              <button
+                onClick={() => {
+                  router.push("/dashboard");
+                  setConfirmGameOver(true);
+                }}
+                className="w-[45%] font-mono text-lg font-semibold transition duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-lg shadow-md"
+              >
                 Exit
               </button>
             </div>

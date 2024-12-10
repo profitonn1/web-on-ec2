@@ -7,7 +7,7 @@ const Timer = ({ startTime, onTimeEnd }) => {
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
       const gameStart = new Date(startTime).getTime();
-      const elapsedTime = Math.floor((now - gameStart) / 1000); // Time elapsed in seconds
+      const elapsedTime = Math.floor((now - gameStart) / 1000) - 5; // Subtract 3 seconds for the buffer
       const remainingTime = Math.max(1 * 60 - elapsedTime, 0); // Ensure no negative time
       setTimeLeft(remainingTime);
 
@@ -26,11 +26,21 @@ const Timer = ({ startTime, onTimeEnd }) => {
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
   };
 
   return (
-    <div style={{ textAlign: "center", fontSize: "40px", fontWeight: "bold", color: "white" }}>
+    <div
+      style={{
+        textAlign: "center",
+        fontSize: "40px",
+        fontWeight: "bold",
+        color: "white",
+      }}
+    >
       {formatTime(timeLeft)}
     </div>
   );

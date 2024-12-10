@@ -144,31 +144,29 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
+// Create a Prisma Client instance
 const prisma = new PrismaClient();
-
 export async function POST(request) {
   try {
     const body = await request.json();
     const { id: userId, username, amount } = body;
 
-    console.log(userId, username, amount, typeof amount);
+    console.log("Received Request:", userId, username, amount);
 
-    // Fetch potential opponents and include related `user` and `userFullDetails`
-    const potentialOpponents = await prisma.userAutomaticPairedDetails.findMany(
-      {
+    // Fetch potential opponents and ongoing match concurrently
+    const [potentialOpponents, ongoingMatch] = await Promise.all([
+      prisma.userAutomaticPairedDetails.findMany({
         where: {
           amount: amount,
           isPaired: false,
-          NOT: {
-            authorId: userId,
-          },
+          NOT: { authorId: userId },
         },
         include: {
           author: {
             select: {
               username: true,
               userfulldetails: {
-                take: 1, // Take the first entry from the array
+                take: 1,
                 select: {
                   winRate: true,
                   Ranking: true,
@@ -177,93 +175,67 @@ export async function POST(request) {
             },
           },
         },
-      }
-    );
+      }),
+      prisma.totalAutomaticHistory.findFirst({
+        where: {
+          OR: [{ playerOneUserName: username }, { playerTwoUserName: username }],
+          status: "ongoing",
+        },
+        orderBy: { startTime: "desc" },
+      }),
+    ]);
 
-    console.log("Potential Opponents:", potentialOpponents);
-
+    // No potential opponents
     if (potentialOpponents.length === 0) {
-      const serachAlreadyFoundPlayer =
-        await prisma.userAutomaticPairedDetails.findFirst({
-          where: {
-            opponentId: userId,
-          },
-        });
-
-      const serachAlreadyMatchedOpponent =
-        await prisma.totalAutomaticHistory.findFirst({
-          where: {
-            OR: [
-              { playerOneUserName: username },
-              { playerTwoUserName: username },
-            ],
-            status: "ongoing", // Only fetch ongoing games
-          },
-          orderBy: {
-            startTime: "desc", // Order by start time to get the latest game
-          },
-        });
-
-      if (!serachAlreadyMatchedOpponent) {
+      if (!ongoingMatch) {
         return NextResponse.json(
           { error: "No potential opponents found" },
           { status: 404 }
         );
-      } else {
-        // Identify the opponent based on the current user's username
-        const opponentUsername =
-          serachAlreadyMatchedOpponent.playerOneUserName === username
-            ? serachAlreadyMatchedOpponent.playerTwoUserName
-            : serachAlreadyMatchedOpponent.playerOneUserName;
-
-        // Fetch opponent's full details, including win rate, ranking, etc.
-        const opponent = await prisma.userFullDetails.findFirst({
-          where: {
-            author: {
-              username: opponentUsername,
-            },
-          },
-        });
-
-        // Fetch the demo balance for the opponent
-        const demoMoney = await prisma.partialDemoBalance.findUnique({
-          where: { player: opponentUsername },
-        });
-
-        // Send the response with opponent details
-        return NextResponse.json(
-          {
-            oppname: opponentUsername,
-            winrate: opponent?.winRate,
-            ranking: opponent?.Ranking,
-            oppDemoBalance: demoMoney?.demoBalance,
-            startTime: serachAlreadyMatchedOpponent.startTime,
-          },
-          { status: 200 }
-        );
       }
+
+      // Retrieve ongoing match opponent details
+      const opponentUsername =
+        ongoingMatch.playerOneUserName === username
+          ? ongoingMatch.playerTwoUserName
+          : ongoingMatch.playerOneUserName;
+
+      const opponent = await prisma.userFullDetails.findFirst({
+        where: { author: { username: opponentUsername } },
+      });
+
+      const demoMoney = await prisma.partialDemoBalance.findUnique({
+        where: { player: opponentUsername },
+      });
+
+      return NextResponse.json(
+        {
+          oppname: opponentUsername,
+          winrate: opponent?.winRate,
+          ranking: opponent?.Ranking,
+          oppDemoBalance: demoMoney?.demoBalance,
+          startTime: ongoingMatch.startTime,
+          gameId: ongoingMatch.gameId,
+        },
+        { status: 200 }
+      );
     }
 
-    // Randomly choose an opponent from the list
+    // Randomly choose an opponent
     const randomOpponent =
       potentialOpponents[Math.floor(Math.random() * potentialOpponents.length)];
-
-    // Ensure opponent details are available
     const opponentDetails = randomOpponent?.author?.userfulldetails[0];
 
-    await prisma.$transaction(async (tx) => {
-      // Update userAutomaticPairedDetails for both users
-      await tx.userAutomaticPairedDetails.update({
-        where: { authorId: userId },
-        data: { isPaired: true, opponentId: randomOpponent.authorId },
-      });
+    if (!randomOpponent || !opponentDetails) {
+      return NextResponse.json(
+        { error: "Opponent details missing" },
+        { status: 500 }
+      );
+    }
 
-      await tx.userAutomaticPairedDetails.update({
-        where: { authorId: randomOpponent.authorId },
-        data: { isPaired: true, opponentId: userId },
-      });
-
-      // Delete both entries from userAutomaticPairedDetails
+    // Perform transactional pairing and game creation
+    const newGame = await prisma.$transaction(async (tx) => {
+      // Update pairing details
       await tx.userAutomaticPairedDetails.delete({
         where: { authorId: userId },
       });
@@ -272,62 +244,44 @@ export async function POST(request) {
         where: { authorId: randomOpponent.authorId },
       });
 
-      // Find if there's an ongoing game with the user
-      const findPlayer = await tx.totalAutomaticHistory.findFirst({
-        where: {
-          OR: [
-            { playerOneUserName: username },
-            { playerTwoUserName: username },
-          ],
-          status: "ongoing", // Only fetch ongoing games
-        },
-        orderBy: {
-          startTime: "desc", // Order by start time to get the latest game
+      // Create new game
+      return tx.totalAutomaticHistory.create({
+        data: {
+          amount: randomOpponent.amount,
+          category: randomOpponent.category,
+          playerOneUserName: randomOpponent.author.username,
+          playerTwoUserName: username,
+          status: "ongoing",
+          startTime: new Date(),
         },
       });
-
-      if (!findPlayer) {
-        // If no ongoing game found, create a new entry in TotalAutomaticHistory
-        await tx.totalAutomaticHistory.create({
-          data: {
-            amount: randomOpponent.amount,
-            category: randomOpponent.category,
-            playerOneUserName: randomOpponent.author.username,
-            playerTwoUserName: username,
-            status: "ongoing",
-            startTime: new Date(),
-          },
-        });
-      }
-
-      // Fetch the partial demo balance for the random opponent
     });
+
     const demoMoney = await prisma.partialDemoBalance.findUnique({
       where: { player: randomOpponent.author.username },
     });
 
-    // Send both users' details (user and opponent) in the response
+    // Sync the game details for both players
     return NextResponse.json(
       {
         oppname: randomOpponent.author.username,
         winrate: opponentDetails.winRate,
         ranking: opponentDetails.Ranking,
-        oppDemoBalance: demoMoney.demoBalance,
-        startTime: new Date(),
+        oppDemoBalance: demoMoney?.demoBalance,
+        startTime: newGame.startTime,
+        gameId: newGame?.gameId,
       },
       { status: 201 }
     );
   } catch (error) {
-    // Safeguard error handling
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error("Error checking challenge pairing:", errorMessage);
+    console.error("Error during challenge pairing:", error.message);
 
     return NextResponse.json(
-      { error: "Error occurred", details: errorMessage },
+      { error: "Error occurred", details: error.message },
       { status: 500 }
     );
   } finally {
     await prisma.$disconnect();
   }
 }
+

@@ -17,20 +17,23 @@ CREATE TABLE `User` (
 
 -- CreateTable
 CREATE TABLE `TotalAutomaticHistory` (
-    `id` VARCHAR(191) NOT NULL,
+    `gameId` VARCHAR(191) NOT NULL,
     `amount` VARCHAR(191) NOT NULL,
     `category` VARCHAR(191) NOT NULL,
     `playerOneUserName` VARCHAR(191) NOT NULL,
     `playerTwoUserName` VARCHAR(191) NOT NULL,
     `playerThreeUserName` VARCHAR(191) NULL,
     `playerFourUserName` VARCHAR(191) NULL,
-    `first` VARCHAR(191) NOT NULL,
-    `second` VARCHAR(191) NOT NULL,
+    `first` VARCHAR(191) NULL,
+    `second` VARCHAR(191) NULL,
     `third` VARCHAR(191) NULL,
     `fourth` VARCHAR(191) NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'ongoing',
+    `startTime` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `endTime` DATETIME(3) NULL,
 
-    UNIQUE INDEX `TotalAutomaticHistory_id_key`(`id`),
-    PRIMARY KEY (`id`)
+    UNIQUE INDEX `TotalAutomaticHistory_gameId_key`(`gameId`),
+    PRIMARY KEY (`gameId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -81,6 +84,7 @@ CREATE TABLE `UserAutomaticPairedDetails` (
     `opponentId` VARCHAR(191) NULL,
     `amount` VARCHAR(191) NULL,
     `category` VARCHAR(191) NOT NULL,
+    `paid_us` BOOLEAN NULL DEFAULT false,
 
     UNIQUE INDEX `UserAutomaticPairedDetails_id_key`(`id`),
     UNIQUE INDEX `UserAutomaticPairedDetails_authorId_key`(`authorId`),

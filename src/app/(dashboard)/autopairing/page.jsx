@@ -179,7 +179,7 @@ export default function Autopairing() {
   
           // Handle successful responses
           if (postresponse.status === 201 || postresponse.status === 200) {
-            const { oppname, winrate, ranking ,startTime} = postresponse.data;
+            const { oppname, winrate, ranking ,startTime , gameId} = postresponse.data;
   
             // Update state with the response
             setOppData({ oppname, winrate, ranking });
@@ -187,7 +187,7 @@ export default function Autopairing() {
             setShowAlert(true)
             setAlertMessage("Redirecting to terminal")
             setTimeout(()=>{
-              router.push('/terminal')
+              router.push(`/terminal?gameId=${encodeURIComponent(gameId)}&category=${encodeURIComponent('bgautomatic')}&amount=${encodeURIComponent(amount)}`);
             },2000)
   
             // Store oppData in cookies with a 15-minute expiration
@@ -204,7 +204,7 @@ export default function Autopairing() {
             console.log("No opponent found, retrying...");
             setHeading("Finding Player");
             // Retry after 5 seconds
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
           }
           // Handle unexpected responses
           else {
@@ -216,7 +216,7 @@ export default function Autopairing() {
           // Ensure retries continue on network or unexpected errors
           if (error.response?.status === 404) {
             console.log("Retrying due to 404 error...");
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
           } else {
             retry = false; // Stop retrying on other errors
           }
